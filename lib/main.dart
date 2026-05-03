@@ -4,16 +4,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 import 'package:suhbat/core/router/app_router.dart';
+
+import 'package:suhbat/core/theme/app_theme.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: ".env");
-  print(dotenv.env['SUPABASE_URL']);
-  print(dotenv.env['SUPABASE_ANON_KEY']);
 
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
@@ -31,6 +30,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       routerConfig: router,
+      theme: AppTheme.lightTheme,
     );
   }
 }

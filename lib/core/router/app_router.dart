@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:suhbat/features/auth/presentation/login_screen.dart';
+import 'package:suhbat/features/auth/presentation/register_screen.dart';
+
 
 final router = GoRouter(
+  initialLocation: '/login',
   routes: [
     GoRoute(
-      path: '/',
-      builder: (context, state) => const Scaffold(
-        body: Center(
-          child: Text('Suhbat'),
-        ),
-      ),
+      path: '/login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegisterScreen(),
     ),
   ],
 );
