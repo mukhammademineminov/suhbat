@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:suhbat/features/auth/data/auth_repository.dart';
+import 'package:suhbat/utils/snackbar_utils.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,11 +13,10 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-
 class _LoginScreenState extends State<LoginScreen> {
-
   final emailTextFieldCntroller = TextEditingController();
   final passwordTextFieldCntroller = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               Gap(8),
-              Center(
-                child: Text('Welcome Back!')
-              ),
+              Center(child: Text('Welcome Back!')),
               Gap(32),
               TextField(
                 controller: emailTextFieldCntroller,
@@ -52,9 +51,40 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration: InputDecoration(labelText: 'Enter your password'),
               ),
               Gap(16),
-              ElevatedButton(onPressed: () {
-                AuthRepository().signIn(emailTextFieldCntroller.text, passwordTextFieldCntroller.text);
-              }, child: Text('Login')),
+              ElevatedButton(
+                onPressed: _isLoading ? null : () async {
+                  setState(() {
+                    _isLoading = true;
+                  });
+                  
+                  final authRepo = AuthRepository();
+                  try {
+                    final response = await authRepo.signIn(
+                      emailTextFieldCntroller.text.trim(),
+                      passwordTextFieldCntroller.text.trim(),
+                    );
+                    if (response.session != null && context.mounted) {
+                      context.go('/rooms_chat');
+                    }
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    setState(() {
+                      _isLoading = false;
+                    });
+                    SnackbarUtils.showMessage(
+                      context,
+                      e.toString(),
+                      isError: true,
+                    );
+                  }
+                },
+                child:  _isLoading
+                  ? SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator())
+                  : Text ('Login'),
+              ),
             ],
           ),
         ),
@@ -62,4 +92,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
