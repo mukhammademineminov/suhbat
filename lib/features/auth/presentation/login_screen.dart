@@ -29,14 +29,16 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Gap(16),
-              Center(
-                child: Text(
+              Text(
                   'Suhbat',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-              ),
+              
               Gap(8),
-              Center(child: Text('Welcome Back!')),
+              Text('Welcome Back!',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              
               Gap(32),
               TextField(
                 controller: emailTextFieldCntroller,
@@ -52,39 +54,70 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               Gap(16),
               ElevatedButton(
-                onPressed: _isLoading ? null : () async {
-                  setState(() {
-                    _isLoading = true;
-                  });
-                  
-                  final authRepo = AuthRepository();
-                  try {
-                    final response = await authRepo.signIn(
-                      emailTextFieldCntroller.text.trim(),
-                      passwordTextFieldCntroller.text.trim(),
-                    );
-                    if (response.session != null && context.mounted) {
-                      context.go('/rooms_chat');
-                    }
-                  } catch (e) {
-                    if (!context.mounted) return;
-                    setState(() {
-                      _isLoading = false;
-                    });
-                    SnackbarUtils.showMessage(
-                      context,
-                      e.toString(),
-                      isError: true,
-                    );
-                  }
-                },
-                child:  _isLoading
-                  ? SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator())
-                  : Text ('Login'),
+                onPressed: _isLoading
+                    ? null
+                    : () async {
+                        setState(() {
+                          _isLoading = true;
+                        });
+
+                        final authRepo = AuthRepository();
+                        try {
+                          final response = await authRepo.signIn(
+                            emailTextFieldCntroller.text.trim(),
+                            passwordTextFieldCntroller.text.trim(),
+                          );
+                          if (response.session != null && context.mounted) {
+                            context.go('/rooms_chat');
+                          }
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          setState(() {
+                            _isLoading = false;
+                          });
+                          SnackbarUtils.showMessage(
+                            context,
+                            e.toString(),
+                            isError: true,
+                          );
+                        }
+                      },
+                child: _isLoading
+                    ? SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(),
+                      )
+                    : Text('Login'),
               ),
+              Gap(14),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Gap(6),
+                  Text("Or continute with"),
+                  TextButton(
+                    onPressed: () {
+                      
+                    },
+                    child: Text('Google'),
+                  ),
+                ],
+              ),
+              Gap(14),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Don't have an account?"),
+                  TextButton(
+                    onPressed: () {
+                      context.go('/register');
+                    },
+                    child: Text('Sign Up'),
+                  ),
+                ],
+              ),
+              
             ],
           ),
         ),
