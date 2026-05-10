@@ -95,10 +95,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Gap(6),
-                  Text("Or continute with"),
+                  Text("Or continue with"),
                   TextButton(
                     onPressed: () {
-                      
+                      // 
                     },
                     child: Text('Google'),
                   ),

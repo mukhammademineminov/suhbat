@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:suhbat/features/auth/data/auth_repository.dart';
 import 'package:suhbat/utils/snackbar_utils.dart';
 
@@ -14,105 +12,158 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final emailTextFieldCntroller = TextEditingController();
-  final passwordTextFieldCntroller = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _otpController = TextEditingController();
+
   bool _isLoading = false;
+  bool _otpSent = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameController.dispose();
+    _otpController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Gap(16),
-              Text(
+              const Gap(16),
+              const Text(
                 'Suhbat',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-
-              Gap(8),
+              const Gap(8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Create an account!',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 8),
-                  Text('Enter your Name, Email and Password for sign up.'),
-                  
+                  const Gap(4),
+                  Text(
+                    _otpSent
+                        ? 'Confirmation code has been sent to your email. Enter it to sign up.'
+                        : 'Enter your Name, Email and Password to sign up.',
+                  ),
                   Row(
                     children: [
-                      Text("Already have an account?"),
+                      const Text("Already have an account?"),
                       TextButton(
                         onPressed: () => context.go('/login'),
-                        child: Text('Log In'),
+                        child: const Text('Log In'),
                       ),
                     ],
                   ),
                 ],
               ),
+              const Gap(32),
 
-              Gap(32),
-              TextField(
-                controller: emailTextFieldCntroller,
-                decoration: InputDecoration(labelText: 'Enter your email'),
-              ),
-              Gap(16),
-              TextField(
-                obscureText: true,
-                enableSuggestions: false,
-                autocorrect: false,
-                controller: passwordTextFieldCntroller,
-                decoration: InputDecoration(labelText: 'Enter your password'),
-              ),
-              Gap(16),
-              ElevatedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () async {
-                        setState(() {
-                          _isLoading = true;
-                        });
+              if (!_otpSent) ...[
+                TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: 'Enter your name'),
+                ),
+                const Gap(16),
+                TextField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(labelText: 'Enter your email'),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const Gap(16),
+                TextField(
+                  obscureText: true,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  controller: _passwordController,
+                  decoration: const InputDecoration(labelText: 'Enter your password'),
+                ),
+                const Gap(16),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _signUp,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(),
+                        )
+                      : const Text('Sign Up'),
+                ),
+              ] else ...[
+                TextField(
+                  controller: _otpController,
+                  decoration: const InputDecoration(labelText: 'Enter Confirmation code'),
+                  keyboardType: TextInputType.number,
+                  maxLength: 8,
+                ),
+                const Gap(16),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _verifyOtp,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(),
+                        )
+                      : const Text('Confirm'),
+                ),
+              ],
 
-                        final authRepo = AuthRepository();
-                        try {
-                          final response = await authRepo.signIn(
-                            emailTextFieldCntroller.text.trim(),
-                            passwordTextFieldCntroller.text.trim(),
-                          );
-                          if (response.session != null && context.mounted) {
-                            context.go('/rooms_chat');
-                          }
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          setState(() {
-                            _isLoading = false;
-                          });
-                          SnackbarUtils.showMessage(
-                            context,
-                            e.toString(),
-                            isError: true,
-                          );
-                        }
-                      },
-                child: _isLoading
-                    ? SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(),
-                      )
-                    : Text('Sign Up'),
-              ),
-              Gap(14),
+              const Gap(14),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _signUp() async {
+    setState(() => _isLoading = true);
+    final authRepo = AuthRepository();
+    try {
+      await authRepo.signUp(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+        _nameController.text.trim(),
+      );
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _otpSent = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      SnackbarUtils.showMessage(context, e.toString(), isError: true);
+    }
+  }
+
+  Future<void> _verifyOtp() async {
+    setState(() => _isLoading = true);
+    final authRepo = AuthRepository();
+    try {
+      await authRepo.verifyOTP(
+        _emailController.text.trim(),
+        _otpController.text.trim(),
+      );
+      if (!mounted) return;
+      context.go('/rooms_chat');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      SnackbarUtils.showMessage(context, e.toString(), isError: true);
+    }
   }
 }

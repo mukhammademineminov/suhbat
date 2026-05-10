@@ -10,4 +10,23 @@ class AuthRepository {
     );
     return response;
   }
+  Future<AuthResponse> signUp(String email, String password, String name) async {
+    final response = await _supabase.auth.signUp(
+      email: email,
+      password: password,
+      data: {'name': name},
+    );
+    return response;
+  }
+  Future<AuthResponse> verifyOTP(String email, String token) async {
+    final response = await _supabase.auth.verifyOTP(
+      email: email,
+      token: token,
+      type: OtpType.signup,
+    );
+    return response;
+  }
+  Future<void> signOut() async {
+    await _supabase.auth.signOut();
+  }
 }
