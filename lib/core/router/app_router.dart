@@ -1,11 +1,13 @@
+import 'package:flutter/material.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:suhbat/features/auth/presentation/login_screen.dart';
 import 'package:suhbat/features/auth/presentation/register_screen.dart';
 import 'package:suhbat/features/chat/presentation/rooms_screen.dart';
+import 'package:suhbat/features/chat/presentation/chat_screen.dart';
 
-import 'package:flutter/material.dart';
 
 class AuthChangeNotifier extends ChangeNotifier {
   AuthChangeNotifier() {
@@ -23,7 +25,9 @@ final router = GoRouter(
   redirect: (context, state) {
     final session = Supabase.instance.client.auth.currentSession;
     final isLoggedIn = session != null;
-    final isAuthRute = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+    final isAuthRute =
+        state.matchedLocation == '/login' ||
+        state.matchedLocation == '/register';
 
     if (isLoggedIn && isAuthRute) {
       return '/rooms_chat';
@@ -34,10 +38,7 @@ final router = GoRouter(
     return null;
   },
   routes: [
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginScreen(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterScreen(),
@@ -46,6 +47,10 @@ final router = GoRouter(
       path: '/rooms_chat',
       builder: (context, state) => const RoomsScreen(),
     ),
-
+    GoRoute(
+      path: '/chat/:roomId',
+      builder: (context, state) =>
+          ChatScreen(roomId: state.pathParameters['roomId']!),
+    ),
   ],
 );

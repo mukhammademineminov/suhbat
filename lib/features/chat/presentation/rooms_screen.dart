@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:suhbat/features/chat/providers/rooms_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -37,7 +39,7 @@ class RoomsScreen extends ConsumerWidget {
               title: Text(room.name),
               trailing: Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
-                // context.go('/chat/${room.id}');
+                context.go('/chat/${room.id}');
               },
             );
           },
