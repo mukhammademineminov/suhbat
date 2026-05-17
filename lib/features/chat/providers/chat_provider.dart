@@ -4,6 +4,6 @@ import 'package:suhbat/features/chat/data/message.dart';
 
 final chatRepositoryProvider = Provider((ref) => ChatRepository());
 
-final messagesProvider = FutureProvider.family<List<Message>, String>((ref, roomId) async {
-  return ref.read(chatRepositoryProvider).getMessages(roomId);
+final messagesProvider = StreamProvider.family<List<Message>, String>((ref, roomId) {
+  return ref.read(chatRepositoryProvider).messagesStream(roomId);
 });

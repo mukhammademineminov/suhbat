@@ -48,9 +48,10 @@ final router = GoRouter(
       builder: (context, state) => const RoomsScreen(),
     ),
     GoRoute(
-      path: '/chat/:roomId',
+      path: '/chat/:roomId/:roomName',
       builder: (context, state) =>
-          ChatScreen(roomId: state.pathParameters['roomId']!),
+          ChatScreen(roomId: state.pathParameters['roomId']!,
+          roomName: state.pathParameters['roomName']!),
     ),
   ],
 );

@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:suhbat/features/chat/providers/rooms_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:suhbat/utils/dialog_utils.dart';
+
 class RoomsScreen extends ConsumerWidget {
   const RoomsScreen({super.key});
 
@@ -19,7 +21,15 @@ class RoomsScreen extends ConsumerWidget {
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
-              await Supabase.instance.client.auth.signOut();
+              final confirm = await DialogUtils.showConfirmDialog(
+                context,
+                title: 'Logout',
+                content: 'Are you sure to logout?',
+              );
+
+              if (confirm) {
+                await Supabase.instance.client.auth.signOut();
+              }
             },
           ),
         ],
@@ -39,7 +49,7 @@ class RoomsScreen extends ConsumerWidget {
               title: Text(room.name),
               trailing: Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
-                context.go('/chat/${room.id}');
+                context.push('/chat/${room.id}/${room.name}');
               },
             );
           },

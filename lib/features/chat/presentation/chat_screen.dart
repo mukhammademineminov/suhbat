@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:suhbat/features/chat/providers/chat_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:suhbat/features/chat/providers/chat_provider.dart';
+
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String roomId;
-
-  const ChatScreen({super.key, required this.roomId});
+  final String roomName;
+  const ChatScreen({super.key, required this.roomId, required this.roomName});
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -27,7 +30,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
+        title: Text(widget.roomName),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: Column(
         children: [

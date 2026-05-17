@@ -10,22 +10,28 @@ class AuthRepository {
     );
     return response;
   }
-  Future<AuthResponse> signUp(String email, String password, String name) async {
-  final response = await _supabase.auth.signUp(
-    email: email,
-    password: password,
-    data: {'full_name': name},
-  );
 
-  if (response.user != null) {
-    await _supabase.from('profiles').insert({
-      'id': response.user!.id,
-      'username': name,
-    });
+  Future<AuthResponse> signUp(
+    String email,
+    String password,
+    String name,
+  ) async {
+    final response = await _supabase.auth.signUp(
+      email: email,
+      password: password,
+      data: {'full_name': name},
+    );
+
+    if (response.user != null) {
+      await _supabase.from('profiles').insert({
+        'id': response.user!.id,
+        'username': name,
+      });
+    }
+
+    return response;
   }
 
-  return response;
-}
   Future<AuthResponse> verifyOTP(String email, String token) async {
     final response = await _supabase.auth.verifyOTP(
       email: email,
@@ -34,6 +40,7 @@ class AuthRepository {
     );
     return response;
   }
+
   Future<void> signOut() async {
     await _supabase.auth.signOut();
   }

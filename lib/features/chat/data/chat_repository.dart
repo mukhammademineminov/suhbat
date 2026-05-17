@@ -22,4 +22,12 @@ class ChatRepository {
       'content': content,
     });
   }
+  Stream<List<Message>> messagesStream(String roomId) {
+  return _supabase
+      .from('messages')
+      .stream(primaryKey: ['id'])
+      .eq('room_id', roomId)
+      .order('created_at', ascending: true)
+      .map((data) => data.map((e) => Message.fromMap(e)).toList());
+}
 }
