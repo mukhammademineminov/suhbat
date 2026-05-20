@@ -7,7 +7,7 @@ class ChatRepository {
   Future<List<Message>> getMessages(String roomId) async {
     final data = await _supabase
         .from('messages')
-        .select()
+        .select('*, profiles(username)')
         .eq('room_id', roomId)
         .order('created_at', ascending: true);
 
@@ -22,12 +22,24 @@ class ChatRepository {
       'content': content,
     });
   }
+
   Stream<List<Message>> messagesStream(String roomId) {
-  return _supabase
-      .from('messages')
-      .stream(primaryKey: ['id'])
-      .eq('room_id', roomId)
-      .order('created_at', ascending: true)
-      .map((data) => data.map((e) => Message.fromMap(e)).toList());
-}
+    return _supabase
+        .from('messages')
+        .stream(primaryKey: ['id'])
+        .eq('room_id', roomId)
+        .order('created_at', ascending: true)
+        .asyncMap((data) async {
+          final List<Message> messages = [];
+          for (final e in data) {
+            final profile = await _supabase
+                .from('profiles')
+                .select('username')
+                .eq('id', e['user_id'])
+                .single();
+            messages.add(Message.fromMap({...e, 'profiles': profile}));
+          }
+          return messages;
+        });
+  }
 }

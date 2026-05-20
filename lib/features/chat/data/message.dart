@@ -4,6 +4,7 @@ class Message {
   final String userId;
   final String content;
   final DateTime createdAt;
+  final String? username; // qo'shdik
 
   Message({
     required this.id,
@@ -11,6 +12,7 @@ class Message {
     required this.userId,
     required this.content,
     required this.createdAt,
+    this.username,
   });
 
   factory Message.fromMap(Map<String, dynamic> map) {
@@ -20,6 +22,7 @@ class Message {
       userId: map['user_id'] as String,
       content: map['content'] as String,
       createdAt: DateTime.parse(map['created_at'] as String),
+      username: map['profiles']?['username'] as String?,
     );
   }
 }

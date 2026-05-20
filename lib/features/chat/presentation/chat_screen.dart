@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:suhbat/features/chat/providers/chat_provider.dart';
+import 'package:suhbat/features/chat/presentation/widgets/message_bubble.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String roomId;
@@ -45,48 +46,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               child: messagesAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text(e.toString())),
-                data: (messages) => ListView.builder(
-                  controller: _scrollController,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isMe =
-                        message.userId ==
-                        Supabase.instance.client.auth.currentUser!.id;
+                data: (messages) => messages.isEmpty
+                    ? const Center(child: Text('No messages yet'))
+                    : ListView.builder(
+                        controller: _scrollController,
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          final isMe =
+                              message.userId ==
+                              Supabase.instance.client.auth.currentUser!.id;
+                          final isSameAsPrevious =
+                              index < messages.length - 1 &&
+                              messages[index + 1].userId == message.userId;
 
-                    return Align(
-                      alignment: isMe
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isMe
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: SelectableText(
-                          message.content,
-                          style: TextStyle(
-                            color: isMe
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
+                          return MessageBubble(
+                            message: message,
+                            isMe: isMe,
+                            isSameAsPrevious: isSameAsPrevious,
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
             ),
             _buildMessageInput(),
@@ -111,7 +91,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 keyboardType: TextInputType.multiline,
                 decoration: const InputDecoration(
                   hintText: 'Type a message...',
-                  border: OutlineInputBorder(),
                 ),
               ),
             ),
@@ -130,5 +109,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _messageController.clear();
     await ref.read(chatRepositoryProvider).sendMessage(widget.roomId, content);
     ref.invalidate(messagesProvider(widget.roomId));
+
+    //scroll to bottom
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
   }
 }

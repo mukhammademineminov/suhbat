@@ -1,0 +1,95 @@
+import 'package:flutter/material.dart';
+import 'package:suhbat/features/chat/data/message.dart';
+
+class MessageBubble extends StatelessWidget {
+  final Message message;
+  final bool isMe;
+  final bool isSameAsPrevious;
+
+  const MessageBubble({
+    super.key,
+    required this.message,
+    required this.isMe,
+    required this.isSameAsPrevious,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isMe) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: SelectableText(
+            message.content,
+            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isSameAsPrevious)
+            CircleAvatar(
+              radius: 16,
+              child: Text(
+                (message.username ?? '?')[0].toUpperCase(),
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          if (isSameAsPrevious) const SizedBox(width: 32),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!isSameAsPrevious)
+                        Text(
+                          message.username ?? 'Unknown',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      if (!isSameAsPrevious) const SizedBox(height: 4),
+                      SelectableText(
+                        message.content,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
