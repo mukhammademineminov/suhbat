@@ -4,7 +4,9 @@ class Message {
   final String userId;
   final String content;
   final DateTime createdAt;
-  final String? username; // qo'shdik
+  final String? username;
+  final bool isRead;
+
 
   Message({
     required this.id,
@@ -13,6 +15,7 @@ class Message {
     required this.content,
     required this.createdAt,
     this.username,
+    this.isRead = false,
   });
 
   factory Message.fromMap(Map<String, dynamic> map) {
@@ -23,6 +26,7 @@ class Message {
       content: map['content'] as String,
       createdAt: DateTime.parse(map['created_at'] as String),
       username: map['profiles']?['username'] as String?,
+      isRead: map['is_read'] as bool,
     );
   }
 }

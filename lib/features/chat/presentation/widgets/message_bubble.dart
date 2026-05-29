@@ -25,9 +25,38 @@ class MessageBubble extends StatelessWidget {
             color: Theme.of(context).colorScheme.primary,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: SelectableText(
-            message.content,
-            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SelectableText(
+                message.content,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    message.createdAt.toLocal().toString().substring(11, 16),
+                    style: TextStyle(
+                      fontSize: 8,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onPrimary.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Icon(
+                    message.isRead ? Icons.done_all : Icons.done,
+                    size: 12,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       );
@@ -80,6 +109,18 @@ class MessageBubble extends StatelessWidget {
                         message.content,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        message.createdAt.toLocal().toString().substring(
+                          11,
+                          16,
+                        ),
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.7),
                         ),
                       ),
                     ],

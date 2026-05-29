@@ -27,9 +27,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(chatRepositoryProvider).markMessagesAsRead(widget.roomId);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(messagesProvider(widget.roomId));
 
+    ref.listen(messagesProvider(widget.roomId), (_, next) {
+      next.whenData((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+       });
+    });
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.roomName),
@@ -64,6 +85,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             message: message,
                             isMe: isMe,
                             isSameAsPrevious: isSameAsPrevious,
+                            
                           );
                         },
                       ),
