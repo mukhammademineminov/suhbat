@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:suhbat/features/chat/providers/chat_provider.dart';
 import 'package:suhbat/features/chat/presentation/widgets/message_bubble.dart';
+import 'package:suhbat/features/chat/data/message.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String roomId;
@@ -49,7 +50,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             );
           }
         });
-       });
+      });
     });
     return Scaffold(
       appBar: AppBar(
@@ -67,28 +68,78 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               child: messagesAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text(e.toString())),
-                data: (messages) => messages.isEmpty
-                    ? const Center(child: Text('No messages yet'))
-                    : ListView.builder(
-                        controller: _scrollController,
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message = messages[index];
-                          final isMe =
-                              message.userId ==
-                              Supabase.instance.client.auth.currentUser!.id;
-                          final isSameAsPrevious =
-                              index < messages.length - 1 &&
-                              messages[index + 1].userId == message.userId;
+                data: (messages) {
+                  if (messages.isEmpty) {
+                    return const Center(child: Text('No messages yet'));
+                  }
+                  final List<Object> items = [];
+                  DateTime? lastDate;
 
-                          return MessageBubble(
-                            message: message,
-                            isMe: isMe,
-                            isSameAsPrevious: isSameAsPrevious,
-                            
-                          );
-                        },
-                      ),
+                  for (final message in messages) {
+                    final messageDate = DateTime(
+                      message.createdAt.toLocal().year,
+                      message.createdAt.toLocal().month,
+                      message.createdAt.toLocal().day,
+                    );
+
+                    if (lastDate == null || lastDate != messageDate) {
+                      items.add(messageDate); // separator
+                      lastDate = messageDate;
+                    }
+                    items.add(message);
+                  }
+
+                  return ListView.builder(
+                    controller: _scrollController,
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+
+                      if (item is DateTime) {
+                        final now = DateTime.now().toLocal();
+                        final today = DateTime(now.year, now.month, now.day);
+                        final yesterday = today.subtract(
+                          const Duration(days: 1),
+                        );
+
+                        String label;
+                        if (item == today) {
+                          label = 'Today';
+                        } else if (item == yesterday) {
+                          label = 'Yesterday';
+                        } else {
+                          label =
+                              '${item.day.toString().padLeft(2, '0')}.${item.month.toString().padLeft(2, '0')}.${item.year}';
+                        }
+                        return Center(
+                          child: Text(
+                            label,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        );
+                      }
+
+                      final message = item as Message;
+                      final isMe =
+                          message.userId ==
+                          Supabase.instance.client.auth.currentUser!.id;
+                      final isSameAsPrevious =
+                          index < items.length - 1 &&
+                          items[index + 1] is Message &&
+                          (items[index + 1] as Message).userId ==
+                              message.userId;
+
+                      return MessageBubble(
+                        message: message,
+                        isMe: isMe,
+                        isSameAsPrevious: isSameAsPrevious,
+                      );
+                    },
+                  );
+                },
               ),
             ),
             _buildMessageInput(),
