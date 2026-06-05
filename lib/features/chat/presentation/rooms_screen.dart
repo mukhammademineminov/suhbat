@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:suhbat/features/chat/providers/rooms_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:suhbat/features/chat/providers/rooms_provider.dart';
+
+import 'package:suhbat/features/profile/providers/profile_provider.dart';
 import 'package:suhbat/utils/dialog_utils.dart';
 
 class RoomsScreen extends ConsumerWidget {
@@ -13,10 +15,24 @@ class RoomsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final roomsAsync = ref.watch(roomsProvider);
-
+    final profileAsync = ref.watch(profilesprovider);
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Rooms'),
+        leading: GestureDetector(
+          onTap: () => context.push('/profile'),
+          child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CircleAvatar(
+            child: profileAsync.when(
+              data: (profile) => Text(profile.avatarChar),
+              loading: () => const SizedBox(),
+              error: (_, __) => const Text('?'),
+            )
+          )
+        ),),
+        
         actions: [
           IconButton(
             icon: Icon(Icons.logout),
@@ -32,6 +48,7 @@ class RoomsScreen extends ConsumerWidget {
               }
             },
           ),
+          
         ],
       ),
       floatingActionButton: FloatingActionButton(

@@ -24,42 +24,50 @@ class ChatRepository {
   }
 
   Stream<List<Message>> messagesStream(String roomId) {
-  return _supabase
-      .from('messages')
-      .stream(primaryKey: ['id'])
-      .eq('room_id', roomId)
-      .order('created_at', ascending: true)
-      .asyncMap((data) async {
-        final userIds = data.map((e) => e['user_id'] as String).toSet().toList();
-        
-        final profiles = await _supabase
-            .from('profiles')
-            .select('id, username')
-            .inFilter('id', userIds);
+    return _supabase
+        .from('messages')
+        .stream(primaryKey: ['id'])
+        .eq('room_id', roomId)
+        .order('created_at', ascending: true)
+        .asyncMap((data) async {
+          final userIds = data
+              .map((e) => e['user_id'] as String)
+              .toSet()
+              .toList();
 
-        final profileMap = {
-          for (final p in profiles) p['id'] as String: p['username'] as String?
-        };
+          final profiles = await _supabase
+              .from('profiles')
+              .select('id, username')
+              .inFilter('id', userIds);
 
-        return data.map((e) => Message.fromMap({
-          ...e,
-          'profiles': {'username': profileMap[e['user_id']]}
-        })).toList();
-      });
-}
+          final profileMap = {
+            for (final p in profiles)
+              p['id'] as String: p['username'] as String?,
+          };
+
+          return data
+              .map(
+                (e) => Message.fromMap({
+                  ...e,
+                  'profiles': {'username': profileMap[e['user_id']]},
+                }),
+              )
+              .toList();
+        });
+  }
 
   Future<void> markMessagesAsRead(String roomId) async {
-  try {
-    final userId = _supabase.auth.currentUser!.id;
-    await _supabase
-        .from('messages')
-        .update({'is_read': true})
-        .eq('room_id', roomId)
-        .neq('user_id', userId)
-        .eq('is_read', false);
-    print('markMessagesAsRead success');
-  } catch (e) {
-    print('markMessagesAsRead error: $e');
+    try {
+      final userId = _supabase.auth.currentUser!.id;
+      await _supabase
+          .from('messages')
+          .update({'is_read': true})
+          .eq('room_id', roomId)
+          .neq('user_id', userId)
+          .eq('is_read', false);
+      print('markMessagesAsRead success');
+    } catch (e) {
+      print('markMessagesAsRead error: $e');
+    }
   }
-}
 }

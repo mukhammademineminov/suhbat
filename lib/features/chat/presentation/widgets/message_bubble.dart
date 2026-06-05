@@ -45,7 +45,7 @@ class MessageBubble extends StatelessWidget {
                       fontSize: 8,
                       color: Theme.of(
                         context,
-                      ).colorScheme.onPrimary.withOpacity(0.7),
+                      ).colorScheme.onPrimary.withValues(alpha: 0.7),
                     ),
                   ),
                   const SizedBox(width: 2),
@@ -120,7 +120,7 @@ class MessageBubble extends StatelessWidget {
                           fontSize: 8,
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
+                          ).colorScheme.onSurface.withValues(alpha:0.7),
                         ),
                       ),
                     ],

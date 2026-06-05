@@ -7,6 +7,7 @@ import 'package:suhbat/features/auth/presentation/login_screen.dart';
 import 'package:suhbat/features/auth/presentation/register_screen.dart';
 import 'package:suhbat/features/chat/presentation/rooms_screen.dart';
 import 'package:suhbat/features/chat/presentation/chat_screen.dart';
+import 'package:suhbat/features/profile/presentation/profile_screen.dart';
 
 
 class AuthChangeNotifier extends ChangeNotifier {
@@ -46,6 +47,10 @@ final router = GoRouter(
     GoRoute(
       path: '/rooms_chat',
       builder: (context, state) => const RoomsScreen(),
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfileScreen(),
     ),
     GoRoute(
       path: '/chat/:roomId/:roomName',
