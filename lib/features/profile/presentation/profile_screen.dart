@@ -36,12 +36,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profilesprovider);
     final email = Supabase.instance.client.auth.currentUser?.email ?? '';
+    bool _initialized = false;
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
         data: (profile) {
+          if (!_initialized) {
+            _usernameController.text = profile.username;
+            _initialized = true;
+            
+          }
           _usernameController.text = profile.username;
           return Center(
             child: SafeArea(
@@ -63,10 +69,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ),
                     Gap(16),
-                    Text(
-                      'Email: $email',
-                      style: const TextStyle(fontSize: 16),
-                      textAlign: TextAlign.center,
+                    TextField(
+                      controller: TextEditingController(text: email),
+                      decoration: const InputDecoration(labelText: 'Email'),
+                      enabled: false,
+                      
                     ),
                     Gap(16),
 
@@ -78,7 +85,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     TextField(
                       controller: _passwordController,
                       decoration: const InputDecoration(labelText: 'Password'),
-                      obscureText: true,
+                      //obscureText: true,
                       enableSuggestions: false,
                       autocorrect: false,
                     ),
@@ -95,9 +102,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             await ProfileRepository().updateProfile(
                               _usernameController.text.trim(),
                             );
-                            await ProfileRepository().updatePassword(
-                              _passwordController.text.trim(),
-                            );
+                            if (_passwordController.text.trim().isNotEmpty) {
+                              await ProfileRepository().updatePassword(
+                                _passwordController.text.trim(),
+                              );
+                            }
+                            
                             ref.invalidate(profilesprovider);
                             if (context.mounted) {
                               SnackbarUtils.showMessage(
