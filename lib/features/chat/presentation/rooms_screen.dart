@@ -28,7 +28,7 @@ class RoomsScreen extends ConsumerWidget {
             child: profileAsync.when(
               data: (profile) => Text(profile.avatarChar),
               loading: () => const SizedBox(),
-              error: (_, __) => const Text('?'),
+              error: (_, _) => const Text('?'),
             )
           )
         ),),

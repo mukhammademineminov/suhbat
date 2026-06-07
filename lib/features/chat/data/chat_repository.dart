@@ -65,9 +65,8 @@ class ChatRepository {
           .eq('room_id', roomId)
           .neq('user_id', userId)
           .eq('is_read', false);
-      print('markMessagesAsRead success');
     } catch (e) {
-      print('markMessagesAsRead error: $e');
+      rethrow;
     }
   }
 }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:suhbat/features/profile/data/profile_repository.dart';
 
 import 'package:suhbat/features/profile/providers/profile_provider.dart';
+import 'package:suhbat/utils/snackbar_utils.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -12,49 +15,113 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  late TextEditingController _usernameController;
+  late TextEditingController _passwordController;
+
+  @override
+  void initState() {
+    super.initState();
+    _usernameController = TextEditingController();
+    _passwordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profilesprovider);
+    final email = Supabase.instance.client.auth.currentUser?.email ?? '';
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
-        data: (profile) => Center(
-          child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Gap(16),
-                  CircleAvatar(
-                    radius: 50,
-                    child: Text(
-                      profile.avatarChar,
-                      style: const TextStyle(
-                        fontSize: 42,
-                        fontWeight: FontWeight.bold,
+        data: (profile) {
+          _usernameController.text = profile.username;
+          return Center(
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Gap(16),
+                    CircleAvatar(
+                      radius: 50,
+                      child: Text(
+                        profile.avatarChar,
+                        style: const TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  Gap(16),
-                  TextField(
-                    controller: TextEditingController(text: profile.username),
-                  ),
+                    Gap(16),
+                    Text(
+                      'Email: $email',
+                      style: const TextStyle(fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    Gap(16),
 
-          
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    child: const Text('Save'),
-                    onPressed: () async {},
-                  ),
-                ],
+                    TextField(
+                      controller: _usernameController,
+                      decoration: const InputDecoration(labelText: 'Username'),
+                    ),
+                    Gap(16),
+                    TextField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(labelText: 'Password'),
+                      obscureText: true,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                    ),
+                    
+
+                    const SizedBox(height: 16),
+                    if (profileAsync.isLoading)
+                      const Center(child: CircularProgressIndicator())
+                    else
+                      ElevatedButton(
+                        child: const Text('Save'),
+                        onPressed: () async {
+                          try {
+                            await ProfileRepository().updateProfile(
+                              _usernameController.text.trim(),
+                            );
+                            await ProfileRepository().updatePassword(
+                              _passwordController.text.trim(),
+                            );
+                            ref.invalidate(profilesprovider);
+                            if (context.mounted) {
+                              SnackbarUtils.showMessage(
+                                context,
+                                'Profile updated successfully!',
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              SnackbarUtils.showMessage(
+                                context,
+                                e.toString(),
+                                isError: true,
+                              );
+                            }
+                          }
+                        },
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
