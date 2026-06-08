@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthRepository {
   final _supabase = Supabase.instance.client;
@@ -23,11 +24,15 @@ class AuthRepository {
     );
 
     if (response.user != null) {
-      await _supabase.from('profiles').insert({
-        'id': response.user!.id,
-        'username': name,
-      });
-    }
+  try {
+    await _supabase.from('profiles').insert({
+      'id': response.user!.id,
+      'username': name,
+    });
+  } catch (e) {
+    debugPrint('profiles insert error: $e');
+  }
+}
 
     return response;
   }

@@ -83,7 +83,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     );
 
                     if (lastDate == null || lastDate != messageDate) {
-                      items.add(messageDate); // separator
+                      items.add(messageDate); 
                       lastDate = messageDate;
                     }
                     items.add(message);
@@ -181,15 +181,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     _messageController.clear();
     await ref.read(chatRepositoryProvider).sendMessage(widget.roomId, content);
-    ref.invalidate(messagesProvider(widget.roomId));
 
     //scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
+      }
     });
   }
 }
