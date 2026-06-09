@@ -80,12 +80,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     TextField(
                       controller: _usernameController,
                       decoration: const InputDecoration(labelText: 'Username'),
+                      autocorrect: false,
+                      enableSuggestions: false
                     ),
                     Gap(16),
                     TextField(
                       controller: _passwordController,
-                      decoration: const InputDecoration(labelText: 'Password'),
-                      //obscureText: true,
+                      decoration: const InputDecoration(labelText: 'New Password'),
+                      
                       enableSuggestions: false,
                       autocorrect: false,
                     ),
