@@ -3,27 +3,41 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:suhbat/features/chat/providers/chat_provider.dart';
 import 'package:suhbat/features/widgets/message_bubble.dart';
-import 'package:suhbat/features/chat/data/message.dart';
 import 'package:suhbat/features/widgets/date_separator.dart';
+
+import 'package:suhbat/features/direct_message/providers/dm_provider.dart';
+import 'package:suhbat/features/direct_message/data/dm_message.dart';
 import 'package:suhbat/features/widgets/message_input.dart';
 
-
-
-class ChatScreen extends ConsumerStatefulWidget {
-  final String roomId;
-  final String roomName;
-  const ChatScreen({super.key, required this.roomId, required this.roomName});
+class DMChatScreen extends ConsumerStatefulWidget {
+  final String conversationId;
+  final String userName;
+  const DMChatScreen({
+    super.key,
+    required this.conversationId,
+    required this.userName,
+  });
 
   @override
-  ConsumerState<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<DMChatScreen> createState() => _DMChatScreenState();
 }
 
-class _ChatScreenState extends ConsumerState<ChatScreen> {
+class _DMChatScreenState extends ConsumerState<DMChatScreen> {
+  
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
 
+ @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref
+          .read(dmRepositoryProvider)
+          .markMessagesAsRead(widget.conversationId);
+      
+    });
+  }
   @override
   void dispose() {
     _messageController.dispose();
@@ -31,19 +45,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.dispose();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await ref.read(chatRepositoryProvider).markMessagesAsRead(widget.roomId);
-    });
-  }
+ 
 
   @override
   Widget build(BuildContext context) {
-    final messagesAsync = ref.watch(messagesProvider(widget.roomId));
+    final messagesAsync = ref.watch(messagesProvider(widget.conversationId));
 
-    ref.listen(messagesProvider(widget.roomId), (_, next) {
+    ref.listen(messagesProvider(widget.conversationId), (_, next) {
       next.whenData((_) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_scrollController.hasClients) {
@@ -58,7 +66,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.roomName),
+        title: Text(widget.userName),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -78,7 +86,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   }
                   final List<Object> items = [];
                   DateTime? lastDate;
-
+                  
                   for (final message in messages) {
                     final messageDate = DateTime(
                       message.createdAt.toLocal().year,
@@ -92,7 +100,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     }
                     items.add(message);
                   }
-
                   return ListView.builder(
                     controller: _scrollController,
                     itemCount: items.length,
@@ -103,30 +110,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         return DateSeparator(date: item);
                       }
 
-                      final message = item as Message;
+                      final message = item as DmMessage;
                       final isMe =
-                          message.userId ==
+                          message.senderId ==
                           Supabase.instance.client.auth.currentUser!.id;
                       final isSameAsPrevious =
                           index < items.length - 1 &&
-                          items[index + 1] is Message &&
-                          (items[index + 1] as Message).userId ==
-                              message.userId;
-                      final username = message.username;
+                          items[index + 1] is DmMessage &&
+                          (items[index + 1] as DmMessage).senderId ==
+                              message.senderId;
 
                       return MessageBubble(
-                        key: ValueKey(message.id),
                         content: message.content,
                         createdAt: message.createdAt,
-                        username: username,
+                        username: message.senderId,
                         isRead: message.isRead,
                         isMe: isMe,
                         isSameAsPrevious: isSameAsPrevious,
                       );
                     },
                   );
-                },
-              ),
+                }
+                ),
             ),
             MessageInput(
               controller: _messageController,
@@ -136,17 +141,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
       ),
     );
-  }
 
-
-  Future<void> _sendMessage() async {
+}
+Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
     _messageController.clear();
-    await ref.read(chatRepositoryProvider).sendMessage(widget.roomId, content);
+    await ref.read(dmRepositoryProvider).sendMessage(widget.conversationId, content);
 
-    //scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
       _scrollController.animateTo(

@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:suhbat/features/chat/data/message.dart';
 
 class MessageBubble extends StatelessWidget {
-  final Message message;
+  final String content;
+  final DateTime createdAt;
   final bool isMe;
+  final bool isRead;
+  final String? username;
   final bool isSameAsPrevious;
 
   const MessageBubble({
     super.key,
-    required this.message,
+    required this.content,
+    required this.createdAt, 
     required this.isMe,
+    required this.isRead,
+    required this.username,
     required this.isSameAsPrevious,
   });
 
@@ -30,7 +35,7 @@ class MessageBubble extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               SelectableText(
-                message.content,
+                content,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
@@ -40,7 +45,7 @@ class MessageBubble extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    message.createdAt.toLocal().toString().substring(11, 16),
+                    createdAt.toLocal().toString().substring(11, 16),
                     style: TextStyle(
                       fontSize: 8,
                       color: Theme.of(
@@ -50,7 +55,7 @@ class MessageBubble extends StatelessWidget {
                   ),
                   const SizedBox(width: 2),
                   Icon(
-                    message.isRead ? Icons.done_all : Icons.done,
+                    isRead ? Icons.done_all : Icons.done,
                     size: 12,
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
@@ -71,7 +76,7 @@ class MessageBubble extends StatelessWidget {
             CircleAvatar(
               radius: 16,
               child: Text(
-                (message.username ?? '?')[0].toUpperCase(),
+                (username ?? '?')[0].toUpperCase(),
                 style: const TextStyle(fontSize: 12),
               ),
             ),
@@ -97,7 +102,7 @@ class MessageBubble extends StatelessWidget {
                     children: [
                       if (!isSameAsPrevious)
                         Text(
-                          message.username ?? 'Unknown',
+                          username ?? 'Unknown',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -106,13 +111,13 @@ class MessageBubble extends StatelessWidget {
                         ),
                       if (!isSameAsPrevious) const SizedBox(height: 4),
                       SelectableText(
-                        message.content,
+                        content,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       Text(
-                        message.createdAt.toLocal().toString().substring(
+                        createdAt.toLocal().toString().substring(
                           11,
                           16,
                         ),

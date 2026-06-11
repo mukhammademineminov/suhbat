@@ -8,6 +8,9 @@ import 'package:suhbat/features/chat/providers/rooms_provider.dart';
 
 import 'package:suhbat/features/profile/providers/profile_provider.dart';
 import 'package:suhbat/utils/dialog_utils.dart';
+import 'package:suhbat/features/search/presentation/search_delegate.dart';
+import 'package:suhbat/features/direct_message/data/dm_repository.dart';
+import 'package:suhbat/features/direct_message/providers/dm_provider.dart';
 
 class RoomsScreen extends ConsumerStatefulWidget {
   const RoomsScreen({super.key});
@@ -36,10 +39,11 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
   Widget build(BuildContext context) {
     final roomsAsync = ref.watch(roomsProvider);
     final profileAsync = ref.watch(profilesprovider);
+    final directMessagesAsync = ref.watch(conversationProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Rooms'),
+        title: const Text('Suhbat'),
         leading: GestureDetector(
           onTap: () => context.push('/profile'),
           child: Padding(
@@ -64,10 +68,26 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () =>
-                showSearch(context: context, delegate: AppSearchDelegate()),
+            onPressed: () async {
+              final result = await showSearch(
+                context: context,
+                delegate: RoomSearchDelegate(),
+              );
+              if (result == null || !context.mounted) return;
+
+              if (result.startsWith('room:')) {
+                final parts = result.split(':');
+                context.push('/chat/${parts[1]}/${parts[2]}');
+              } else if (result.startsWith('user:')) {
+                final parts = result.split(':');
+                final conversationId = await DmRepository()
+                    .getOrCreateConversation(parts[1]);
+                if (!context.mounted) return;
+                context.push('/dm/$conversationId/${parts[2]}');
+              }
+            },
           ),
-          
+
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
@@ -108,7 +128,32 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
               },
             ),
           ),
-          const Center(child: Text('Direct Messages')),
+          directMessagesAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text(e.toString())),
+            data: (conversations) => ListView.builder(
+              itemCount: conversations.length,
+              itemBuilder: (context, index) {
+                final conversation = conversations[index];
+
+                return ListTile(
+                  title: Text(conversation.otherUsername ?? 'Unknown'),
+                  leading: CircleAvatar(
+                    child: Text(
+                      conversation.otherUsername != null
+                          ? conversation.otherUsername![0].toUpperCase()
+                          : '?',
+                    ),
+                  ),
+                  onTap: () {
+                    context.push(
+                      '/dm/${conversation.id}/${conversation.otherUsername}',
+                    );
+                  },
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

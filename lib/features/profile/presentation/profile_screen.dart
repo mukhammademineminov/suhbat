@@ -36,17 +36,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profilesprovider);
     final email = Supabase.instance.client.auth.currentUser?.email ?? '';
-    bool _initialized = false;
+    bool initialized = false;
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
         data: (profile) {
-          if (!_initialized) {
+          if (!initialized) {
             _usernameController.text = profile.username;
-            _initialized = true;
-            
+            initialized = true;
           }
           _usernameController.text = profile.username;
           return Center(
@@ -73,7 +72,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       controller: TextEditingController(text: email),
                       decoration: const InputDecoration(labelText: 'Email'),
                       enabled: false,
-                      
                     ),
                     Gap(16),
 
@@ -81,17 +79,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       controller: _usernameController,
                       decoration: const InputDecoration(labelText: 'Username'),
                       autocorrect: false,
-                      enableSuggestions: false
+                      enableSuggestions: false,
                     ),
                     Gap(16),
                     TextField(
                       controller: _passwordController,
-                      decoration: const InputDecoration(labelText: 'New Password'),
-                      
+                      decoration: const InputDecoration(
+                        labelText: 'New Password',
+                      ),
+
                       enableSuggestions: false,
                       autocorrect: false,
                     ),
-                    
 
                     const SizedBox(height: 16),
                     if (profileAsync.isLoading)
@@ -109,7 +108,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 _passwordController.text.trim(),
                               );
                             }
-                            
+
                             ref.invalidate(profilesprovider);
                             if (context.mounted) {
                               SnackbarUtils.showMessage(

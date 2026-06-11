@@ -1,46 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:suhbat/features/chat/data/room.dart';
+import 'package:suhbat/features/profile/data/profile.dart';
+import 'package:suhbat/features/search/data/search_repository.dart';
 
 class RoomSearchDelegate extends SearchDelegate<String> {
 
-  final List<String> searchTerms;
-
-  RoomSearchDelegate(this.searchTerms);
-
   @override
   List<Widget> buildActions(BuildContext context) {
-   return [
-    IconButton(
-      icon: const Icon(Icons.clear),
-      onPressed: () {
-        query = '';
-      },
-    ),
-   ];
+    return [
+      IconButton(
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      ),
+    ];
   }
+
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () {
-          close(context, '');
-        },
-      );
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, '');
+      },
+    );
   }
+
   @override
-Widget buildResults(BuildContext context) {
-  final results = searchTerms.where((term) {
-    return term.toLowerCase().contains(query.toLowerCase());
-  }).toList();
+  Widget buildResults(BuildContext context) {
+    if (query.isEmpty) return const SizedBox();
 
-  return ListView.builder(
-    itemCount: results.length,
-    itemBuilder: (context, index) {
-      return ListTile(
-        title: Text(results[index]),
-      );
-    },
-  );
-}
-  
+    return FutureBuilder(
+      future: SearchRepository().search(query),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
+        final rooms = snapshot.data!['rooms'] as List<Room>;
+        final users = snapshot.data!['users'] as List<Profile>;
+
+        return ListView.builder(
+          itemCount: rooms.length + users.length,
+          itemBuilder: (context, index) {
+            if (index < rooms.length) {
+              return ListTile(
+                title: Text(rooms[index].name),
+                onTap: () {
+                  close(context, 'room:${rooms[index].id}:${rooms[index].name}');
+                },
+              );
+            }
+            final user = users[index - rooms.length];
+            return ListTile(
+              title: Text(user.username),
+              onTap: () {
+                close(context, 'user:${user.id}:${user.username}');
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) => buildResults(context);
 }
