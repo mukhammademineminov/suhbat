@@ -7,6 +7,7 @@ class MessageBubble extends StatelessWidget {
   final bool isRead;
   final String? username;
   final bool isSameAsPrevious;
+  final bool showUsername;
 
   const MessageBubble({
     super.key,
@@ -16,6 +17,7 @@ class MessageBubble extends StatelessWidget {
     required this.isRead,
     required this.username,
     required this.isSameAsPrevious,
+    this.showUsername = true,
   });
 
   @override
@@ -72,7 +74,7 @@ class MessageBubble extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isSameAsPrevious)
+          if (showUsername && !isSameAsPrevious)
             CircleAvatar(
               radius: 16,
               child: Text(
@@ -100,7 +102,7 @@ class MessageBubble extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (!isSameAsPrevious)
+                      if (showUsername && !isSameAsPrevious)
                         Text(
                           username ?? 'Unknown',
                           style: TextStyle(
@@ -109,7 +111,7 @@ class MessageBubble extends StatelessWidget {
                             color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
-                      if (!isSameAsPrevious) const SizedBox(height: 4),
+                      if (showUsername && !isSameAsPrevious) const SizedBox(height: 4),
                       SelectableText(
                         content,
                         style: TextStyle(

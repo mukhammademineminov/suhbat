@@ -39,7 +39,9 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
 
   @override
   void dispose() {
-    //ref.invalidate(conversationProvider);
+    if (mounted) {
+      ref.invalidate(conversationProvider);
+    }
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -121,10 +123,11 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
                       return MessageBubble(
                         content: message.content,
                         createdAt: message.createdAt,
-                        username: message.senderId,
+                        username: message.username,
                         isRead: message.isRead,
                         isMe: isMe,
                         isSameAsPrevious: isSameAsPrevious,
+                        showUsername: false,
                       );
                     },
                   );
