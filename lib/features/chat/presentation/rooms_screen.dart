@@ -24,10 +24,15 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
   late TabController _tabController;
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
+void initState() {
+  super.initState();
+  _tabController = TabController(length: 2, vsync: this);
+  _tabController.addListener(() {
+    if (_tabController.index == 1) {
+      ref.invalidate(conversationProvider);
+    }
+  });
+}
 
   @override
   void dispose() {
@@ -82,7 +87,9 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
                 final parts = result.split(':');
                 final conversationId = await DmRepository()
                     .getOrCreateConversation(parts[1]);
+                    
                 if (!context.mounted) return;
+                ref.invalidate(conversationProvider);
                 context.push('/dm/$conversationId/${parts[2]}');
               }
             },
@@ -131,28 +138,33 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
           directMessagesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text(e.toString())),
-            data: (conversations) => ListView.builder(
-              itemCount: conversations.length,
-              itemBuilder: (context, index) {
-                final conversation = conversations[index];
+            data: (conversations) {
+              if (conversations.isEmpty) {
+                return const Center(child: Text('No conversations yet'));
+              }
+              return ListView.builder(
+                itemCount: conversations.length,
+                itemBuilder: (context, index) {
+                  final conversation = conversations[index];
 
-                return ListTile(
-                  title: Text(conversation.otherUsername ?? 'Unknown'),
-                  leading: CircleAvatar(
-                    child: Text(
-                      conversation.otherUsername != null
-                          ? conversation.otherUsername![0].toUpperCase()
-                          : '?',
+                  return ListTile(
+                    title: Text(conversation.otherUsername ?? 'Unknown'),
+                    leading: CircleAvatar(
+                      child: Text(
+                        conversation.otherUsername != null
+                            ? conversation.otherUsername![0].toUpperCase()
+                            : '?',
+                      ),
                     ),
-                  ),
-                  onTap: () {
-                    context.push(
-                      '/dm/${conversation.id}/${conversation.otherUsername}',
-                    );
-                  },
-                );
-              },
-            ),
+                    onTap: () {
+                      context.push(
+                        '/dm/${conversation.id}/${conversation.otherUsername}',
+                      );
+                    },
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

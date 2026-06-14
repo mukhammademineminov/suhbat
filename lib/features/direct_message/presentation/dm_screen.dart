@@ -24,28 +24,26 @@ class DMChatScreen extends ConsumerStatefulWidget {
 }
 
 class _DMChatScreenState extends ConsumerState<DMChatScreen> {
-  
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
 
- @override
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await ref
           .read(dmRepositoryProvider)
           .markMessagesAsRead(widget.conversationId);
-      
     });
   }
+
   @override
   void dispose() {
+    //ref.invalidate(conversationProvider);
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
-
- 
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +84,7 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
                   }
                   final List<Object> items = [];
                   DateTime? lastDate;
-                  
+
                   for (final message in messages) {
                     final messageDate = DateTime(
                       message.createdAt.toLocal().year,
@@ -95,7 +93,7 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
                     );
 
                     if (lastDate == null || lastDate != messageDate) {
-                      items.add(messageDate); 
+                      items.add(messageDate);
                       lastDate = messageDate;
                     }
                     items.add(message);
@@ -130,33 +128,32 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
                       );
                     },
                   );
-                }
-                ),
+                },
+              ),
             ),
-            MessageInput(
-              controller: _messageController,
-              onSend: _sendMessage,
-            ),
+            MessageInput(controller: _messageController, onSend: _sendMessage),
           ],
         ),
       ),
     );
+  }
 
-}
-Future<void> _sendMessage() async {
+  Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
     _messageController.clear();
-    await ref.read(dmRepositoryProvider).sendMessage(widget.conversationId, content);
+    await ref
+        .read(dmRepositoryProvider)
+        .sendMessage(widget.conversationId, content);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     });
   }

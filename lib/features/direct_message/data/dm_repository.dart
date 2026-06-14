@@ -26,6 +26,7 @@ class DmRepository {
 
   Future<String> getOrCreateConversation(String otherUserId) async {
     final userId = _supabase.auth.currentUser!.id;
+    if (userId == otherUserId) throw Exception('Cannot start a conversation with yourself');
 
     final existing = await _supabase
         .from('conversations')
