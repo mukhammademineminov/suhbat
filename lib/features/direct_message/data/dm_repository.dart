@@ -117,4 +117,48 @@ class DmRepository {
     }
     return conversations;
   }
+
+  Stream<List<Conversation>> conversationsStream() {
+    final userId = _supabase.auth.currentUser!.id;
+
+    return _supabase
+        .from('conversations')
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: false)
+        .asyncMap((data) async {
+          final filteredData = data
+              .where((e) => e['user1_id'] == userId || e['user2_id'] == userId)
+              .toList();
+
+          final otherUserIds = filteredData
+              .map((e) => e['user1_id'] == userId
+                  ? e['user2_id'] as String
+                  : e['user1_id'] as String)
+              .toSet()
+              .toList();
+
+          final profiles = otherUserIds.isEmpty
+              ? <Map<String, dynamic>>[]
+              : await _supabase
+                  .from('profiles')
+                  .select('id, username')
+                  .inFilter('id', otherUserIds);
+
+          final profileMap = {
+            for (final p in profiles) p['id'] as String: p['username'] as String?,
+          };
+
+          return filteredData.map((e) {
+            final otherUserId = e['user1_id'] == userId
+                ? e['user2_id'] as String
+                : e['user1_id'] as String;
+
+            return Conversation.fromMap(
+              e,
+              userId,
+              {'username': profileMap[otherUserId]},
+            );
+          }).toList();
+        });
+  }
 }

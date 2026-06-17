@@ -34,14 +34,12 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
       await ref
           .read(dmRepositoryProvider)
           .markMessagesAsRead(widget.conversationId);
+      ref.invalidate(messagesProvider(widget.conversationId));
     });
   }
 
   @override
   void dispose() {
-    if (mounted) {
-      ref.invalidate(conversationProvider);
-    }
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -49,9 +47,10 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final messagesAsync = ref.watch(messagesProvider(widget.conversationId));
+    final messagesAsync = ref.watch(dmMessagesProvider(widget.conversationId));
 
     ref.listen(messagesProvider(widget.conversationId), (_, next) {
+      ref.invalidate(dmMessagesProvider(widget.conversationId));
       next.whenData((_) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_scrollController.hasClients) {
