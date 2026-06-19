@@ -8,6 +8,7 @@ import 'package:suhbat/utils/snackbar_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:suhbat/features/widgets/app_avatar.dart';
+import 'package:suhbat/utils/dialog_utils.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -40,7 +41,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final email = Supabase.instance.client.auth.currentUser?.email ?? '';
     bool initialized = false;
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              final confirm = await DialogUtils.showConfirmDialog(
+                context,
+                title: 'Logout',
+                content: 'Are you sure to logout?',
+              );
+
+              if (confirm) {
+                await Supabase.instance.client.auth.signOut();
+              }
+            },
+          ),
+        ],
+      ),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
@@ -132,6 +151,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           );
         },
       ),
+      
     );
   }
 }

@@ -13,7 +13,6 @@ import 'package:suhbat/features/direct_message/data/dm_repository.dart';
 
 import 'package:suhbat/features/widgets/app_avatar.dart';
 
-
 class RoomsScreen extends ConsumerStatefulWidget {
   const RoomsScreen({super.key});
 
@@ -26,15 +25,15 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
   late TabController _tabController;
 
   @override
-void initState() {
-  super.initState();
-  _tabController = TabController(length: 2, vsync: this);
-  _tabController.addListener(() {
-    if (_tabController.index == 1) {
-      ref.invalidate(conversationProvider);
-    }
-  });
-}
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.index == 1) {
+        ref.invalidate(conversationProvider);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -55,9 +54,7 @@ void initState() {
           onTap: () => context.push('/profile'),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: 
-            
-            AppAvatar(
+            child: AppAvatar(
               label: profileAsync.when(
                 data: (profile) => profile.username,
                 loading: () => '',
@@ -93,25 +90,10 @@ void initState() {
                 final parts = result.split(':');
                 final conversationId = await DmRepository()
                     .getOrCreateConversation(parts[1]);
-                    
+
                 if (!context.mounted) return;
                 ref.invalidate(conversationProvider);
                 context.push('/dm/$conversationId/${parts[2]}');
-              }
-            },
-          ),
-
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () async {
-              final confirm = await DialogUtils.showConfirmDialog(
-                context,
-                title: 'Logout',
-                content: 'Are you sure to logout?',
-              );
-
-              if (confirm) {
-                await Supabase.instance.client.auth.signOut();
               }
             },
           ),
