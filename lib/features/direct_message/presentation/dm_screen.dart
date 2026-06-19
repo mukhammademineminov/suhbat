@@ -127,6 +127,7 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
                         isMe: isMe,
                         isSameAsPrevious: isSameAsPrevious,
                         showUsername: false,
+                        userId: message.senderId,
                       );
                     },
                   );

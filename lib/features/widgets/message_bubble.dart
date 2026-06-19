@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:suhbat/features/widgets/user_avatar.dart';
 
 class MessageBubble extends StatelessWidget {
   final String content;
@@ -6,18 +7,23 @@ class MessageBubble extends StatelessWidget {
   final bool isMe;
   final bool isRead;
   final String? username;
+  final String userId;
   final bool isSameAsPrevious;
   final bool showUsername;
+  final VoidCallback? onAvatarTap;
+
 
   const MessageBubble({
     super.key,
     required this.content,
-    required this.createdAt, 
+    required this.createdAt,
     required this.isMe,
     required this.isRead,
     required this.username,
+    required this.userId,
     required this.isSameAsPrevious,
     this.showUsername = true,
+    this.onAvatarTap,
   });
 
   @override
@@ -75,13 +81,12 @@ class MessageBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (showUsername && !isSameAsPrevious)
-            CircleAvatar(
+            UserAvatar(
+              username: username,
               radius: 16,
-              child: Text(
-                (username ?? '?')[0].toUpperCase(),
-                style: const TextStyle(fontSize: 12),
-              ),
+              onTap: onAvatarTap,
             ),
+
           if (isSameAsPrevious) const SizedBox(width: 32),
           const SizedBox(width: 8),
           Flexible(
@@ -111,7 +116,8 @@ class MessageBubble extends StatelessWidget {
                             color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
-                      if (showUsername && !isSameAsPrevious) const SizedBox(height: 4),
+                      if (showUsername && !isSameAsPrevious)
+                        const SizedBox(height: 4),
                       SelectableText(
                         content,
                         style: TextStyle(
@@ -119,15 +125,12 @@ class MessageBubble extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        createdAt.toLocal().toString().substring(
-                          11,
-                          16,
-                        ),
+                        createdAt.toLocal().toString().substring(11, 16),
                         style: TextStyle(
                           fontSize: 8,
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withValues(alpha:0.7),
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                     ],

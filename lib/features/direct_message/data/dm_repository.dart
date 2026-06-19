@@ -19,7 +19,7 @@ class DmRepository {
     final userId = _supabase.auth.currentUser!.id;
     await _supabase.from('direct_messages').insert({
       'conversation_id': conversationId,
-      'sender_id': userId,
+      'sender_id': userId, 
       'content': content,
     });
   }

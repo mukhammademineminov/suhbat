@@ -8,8 +8,7 @@ import 'package:suhbat/features/widgets/message_bubble.dart';
 import 'package:suhbat/features/chat/data/message.dart';
 import 'package:suhbat/features/widgets/date_separator.dart';
 import 'package:suhbat/features/widgets/message_input.dart';
-
-
+import 'package:suhbat/features/direct_message/data/dm_repository.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String roomId;
@@ -87,7 +86,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     );
 
                     if (lastDate == null || lastDate != messageDate) {
-                      items.add(messageDate); 
+                      items.add(messageDate);
                       lastDate = messageDate;
                     }
                     items.add(message);
@@ -122,22 +121,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         isRead: message.isRead,
                         isMe: isMe,
                         isSameAsPrevious: isSameAsPrevious,
+                        userId: message.userId,
+                        onAvatarTap: () async {
+                          if (isMe) return;
+                          final conversationId = await DmRepository()
+                              .getOrCreateConversation(message.userId);
+                          if (!context.mounted) return;
+                          context.push(
+                            '/dm/$conversationId/${message.username}',
+                          );
+                        },
                       );
                     },
                   );
                 },
               ),
             ),
-            MessageInput(
-              controller: _messageController,
-              onSend: _sendMessage,
-            ),
+            MessageInput(controller: _messageController, onSend: _sendMessage),
           ],
         ),
       ),
     );
   }
-
 
   Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
@@ -149,11 +154,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     //scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
