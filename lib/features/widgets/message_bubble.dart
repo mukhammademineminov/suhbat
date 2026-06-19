@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:suhbat/features/widgets/user_avatar.dart';
+import 'package:suhbat/features/widgets/app_avatar.dart';
 
 class MessageBubble extends StatelessWidget {
   final String content;
@@ -81,8 +81,8 @@ class MessageBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (showUsername && !isSameAsPrevious)
-            UserAvatar(
-              username: username,
+            AppAvatar(
+              label: username,
               radius: 16,
               onTap: onAvatarTap,
             ),

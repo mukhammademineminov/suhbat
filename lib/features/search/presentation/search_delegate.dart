@@ -3,8 +3,9 @@ import 'package:suhbat/features/chat/data/room.dart';
 import 'package:suhbat/features/profile/data/profile.dart';
 import 'package:suhbat/features/search/data/search_repository.dart';
 
-class RoomSearchDelegate extends SearchDelegate<String> {
+import 'package:suhbat/features/widgets/app_avatar.dart';
 
+class RoomSearchDelegate extends SearchDelegate<String> {
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
@@ -51,14 +52,27 @@ class RoomSearchDelegate extends SearchDelegate<String> {
             if (index < rooms.length) {
               return ListTile(
                 title: Text(rooms[index].name),
+                leading: AppAvatar(
+                  label: rooms[index].name,
+                  radius: 20,
+                  fontSize: 16,
+                ),
                 onTap: () {
-                  close(context, 'room:${rooms[index].id}:${rooms[index].name}');
+                  close(
+                    context,
+                    'room:${rooms[index].id}:${rooms[index].name}',
+                  );
                 },
               );
             }
             final user = users[index - rooms.length];
             return ListTile(
               title: Text(user.username),
+              leading: AppAvatar(
+                label: user.username,
+                radius: 20,
+                fontSize: 16,
+              ),
               onTap: () {
                 close(context, 'user:${user.id}:${user.username}');
               },

@@ -5,12 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:suhbat/features/chat/providers/rooms_provider.dart';
-
+import 'package:suhbat/features/direct_message/providers/dm_provider.dart';
 import 'package:suhbat/features/profile/providers/profile_provider.dart';
 import 'package:suhbat/utils/dialog_utils.dart';
 import 'package:suhbat/features/search/presentation/search_delegate.dart';
 import 'package:suhbat/features/direct_message/data/dm_repository.dart';
-import 'package:suhbat/features/direct_message/providers/dm_provider.dart';
+
+import 'package:suhbat/features/widgets/app_avatar.dart';
+
 
 class RoomsScreen extends ConsumerStatefulWidget {
   const RoomsScreen({super.key});
@@ -53,12 +55,16 @@ void initState() {
           onTap: () => context.push('/profile'),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              child: profileAsync.when(
-                data: (profile) => Text(profile.avatarChar),
-                loading: () => const SizedBox(),
-                error: (_, _) => const Text('?'),
+            child: 
+            
+            AppAvatar(
+              label: profileAsync.when(
+                data: (profile) => profile.username,
+                loading: () => '',
+                error: (_, _) => '?',
               ),
+              radius: 20,
+              fontSize: 16,
             ),
           ),
         ),
@@ -127,6 +133,11 @@ void initState() {
                 final room = rooms[index];
                 return ListTile(
                   title: Text(room.name),
+                  leading: AppAvatar(
+                    label: room.name,
+                    radius: 20,
+                    fontSize: 16,
+                  ),
                   trailing: Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
                     context.push('/chat/${room.id}/${room.name}');
@@ -149,12 +160,10 @@ void initState() {
 
                   return ListTile(
                     title: Text(conversation.otherUsername ?? 'Unknown'),
-                    leading: CircleAvatar(
-                      child: Text(
-                        conversation.otherUsername != null
-                            ? conversation.otherUsername![0].toUpperCase()
-                            : '?',
-                      ),
+                    leading: AppAvatar(
+                      label: conversation.otherUsername ?? 'U',
+                      radius: 20,
+                      fontSize: 16,
                     ),
                     onTap: () {
                       context.push(

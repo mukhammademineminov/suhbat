@@ -7,6 +7,8 @@ import 'package:suhbat/features/profile/providers/profile_provider.dart';
 import 'package:suhbat/utils/snackbar_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:suhbat/features/widgets/app_avatar.dart';
+
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
@@ -57,15 +59,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Gap(16),
-                    CircleAvatar(
+                   
+                    AppAvatar(
+                      label: profile.username,
                       radius: 50,
-                      child: Text(
-                        profile.avatarChar,
-                        style: const TextStyle(
-                          fontSize: 42,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      fontSize: 42,
                     ),
                     Gap(16),
                     TextField(
