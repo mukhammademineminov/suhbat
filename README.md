@@ -57,6 +57,14 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 flutter run
 ```
 
+## Database Setup
+
+1. Create a new Supabase project
+2. Go to SQL Editor → New query
+3. Paste the contents of `schema.sql` and run it
+4. Enable Realtime for `messages`, `direct_messages`, and `conversations` tables (Table Editor → table → Realtime toggle)
+5. Copy your project URL and anon key into `.env`
+
 ## Author
 
 **Mukhammademin** — Flutter Developer

@@ -7,7 +7,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:suhbat/features/chat/providers/rooms_provider.dart';
 import 'package:suhbat/features/direct_message/providers/dm_provider.dart';
 import 'package:suhbat/features/profile/providers/profile_provider.dart';
-import 'package:suhbat/utils/dialog_utils.dart';
 import 'package:suhbat/features/search/presentation/search_delegate.dart';
 import 'package:suhbat/features/direct_message/data/dm_repository.dart';
 
