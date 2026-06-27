@@ -34,7 +34,6 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
       await ref
           .read(dmRepositoryProvider)
           .markMessagesAsRead(widget.conversationId);
-      ref.invalidate(messagesProvider(widget.conversationId));
     });
   }
 
@@ -49,9 +48,10 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(dmMessagesProvider(widget.conversationId));
 
-    ref.listen(messagesProvider(widget.conversationId), (_, next) {
+    ref.listen(dmMessagesProvider(widget.conversationId), (_, next) {
       ref.invalidate(dmMessagesProvider(widget.conversationId));
       next.whenData((_) {
+        ref.read(dmRepositoryProvider).markMessagesAsRead(widget.conversationId);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_scrollController.hasClients) {
             _scrollController.animateTo(
