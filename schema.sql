@@ -124,27 +124,6 @@ for insert
 to public
 with check (auth.uid() is not null);
 
--- ============================================
--- RLS POLICIES — room_members
--- ============================================
-
-create policy "Users can view room members"
-on public.room_members
-for select
-to public
-using (true);
-
-create policy "Users can join rooms"
-on public.room_members
-for insert
-to public
-with check (auth.uid() = user_id);
-
-create policy "Users can leave rooms"
-on public.room_members
-for delete
-to public
-using (auth.uid() = user_id);
 
 -- ============================================
 -- RLS POLICIES — messages

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:suhbat/features/direct_message/data/dm_message.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:suhbat/features/direct_message/data/conversation.dart';
@@ -54,6 +55,7 @@ class DmRepository {
         .eq('conversation_id', conversationId)
         .order('created_at', ascending: true)
         .asyncMap((data) async {
+          debugPrint('Stream update: ${data.length} messages');
           final userIds = data
               .map((e) => e['sender_id'] as String)
               .toSet()

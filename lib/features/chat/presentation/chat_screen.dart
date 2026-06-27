@@ -34,8 +34,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    debugPrint('ChatScreen initState called');
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await ref.read(chatRepositoryProvider).markMessagesAsRead(widget.roomId);
+      debugPrint('PostFrameCallback running');
+      try {
+        await ref
+            .read(chatRepositoryProvider)
+            .markMessagesAsRead(widget.roomId);
+        debugPrint('markMessagesAsRead success');
+      } catch (e) {
+        debugPrint('Error marking messages as read: $e.toString()');
+      }
     });
   }
 
@@ -43,9 +52,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(messagesProvider(widget.roomId));
     final isMemberAsync = ref.watch(isRoomMemberProvider(widget.roomId));
+    final isMember = isMemberAsync.value ?? false;
 
     ref.listen(messagesProvider(widget.roomId), (_, next) {
       next.whenData((_) {
+        ref.read(chatRepositoryProvider).markMessagesAsRead(widget.roomId);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_scrollController.hasClients) {
             _scrollController.animateTo(
@@ -75,7 +86,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 error: (e, _) => Center(child: Text(e.toString())),
                 data: (messages) {
                   if (messages.isEmpty) {
-                    return const Center(child: Text('No messages yet'));
+                    return isMember
+                        ? const Center(child: Text('No messages yet'))
+                        : const Center(
+                            child: Text('Join the room to view messages'),
+                          );
                   }
                   final List<Object> items = [];
                   DateTime? lastDate;
