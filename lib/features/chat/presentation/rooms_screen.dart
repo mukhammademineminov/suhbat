@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:suhbat/features/chat/providers/rooms_provider.dart';
 import 'package:suhbat/features/direct_message/providers/dm_provider.dart';
@@ -84,6 +83,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
 
               if (result.startsWith('room:')) {
                 final parts = result.split(':');
+                ref.invalidate(roomsProvider);
                 context.push('/chat/${parts[1]}/${parts[2]}');
               } else if (result.startsWith('user:')) {
                 final parts = result.split(':');
@@ -183,9 +183,12 @@ void _showCreateRoomDialog(BuildContext context, WidgetRef ref) {
           onPressed: () async {
             final name = controller.text.trim();
             if (name.isEmpty) return;
-            await Supabase.instance.client.from('rooms').insert({'name': name});
+
+            await ref.read(roomRepositoryProvider).createRoom(name);
             ref.invalidate(roomsProvider);
-            if (context.mounted) Navigator.pop(context);
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
           },
           child: const Text('Create'),
         ),

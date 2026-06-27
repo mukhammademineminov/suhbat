@@ -22,8 +22,11 @@ create table public.profiles (
 create table public.rooms (
   id uuid not null default gen_random_uuid (),
   name text not null,
+  is_public boolean not null default true,
+  created_by uuid null,
   created_at timestamp with time zone null default timezone ('utc'::text, now()),
-  constraint rooms_pkey primary key (id)
+  constraint rooms_pkey primary key (id),
+  constraint rooms_created_by_fkey foreign key (created_by) references profiles (id) on delete set null
 );
 
 -- Messages table (group chat)
@@ -63,6 +66,15 @@ create table public.direct_messages (
   constraint direct_messages_sender_id_fkey foreign key (sender_id) references profiles (id)
 );
 
+-- Room members table
+create table public.room_members (
+  room_id uuid references public.rooms(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete cascade,
+  role text default 'member', -- 'owner' | 'admin' | 'member'
+  joined_at timestamptz default now(),
+  primary key (room_id, user_id)
+);
+
 -- ============================================
 -- ENABLE ROW LEVEL SECURITY
 -- ============================================
@@ -72,7 +84,7 @@ alter table public.rooms enable row level security;
 alter table public.messages enable row level security;
 alter table public.conversations enable row level security;
 alter table public.direct_messages enable row level security;
-
+alter table public.room_members enable row level security;
 -- ============================================
 -- RLS POLICIES — profiles
 -- ============================================
@@ -113,14 +125,40 @@ to public
 with check (auth.uid() is not null);
 
 -- ============================================
--- RLS POLICIES — messages
+-- RLS POLICIES — room_members
 -- ============================================
 
-create policy "Messages are viewable by everyone"
-on public.messages
+create policy "Users can view room members"
+on public.room_members
 for select
 to public
 using (true);
+
+create policy "Users can join rooms"
+on public.room_members
+for insert
+to public
+with check (auth.uid() = user_id);
+
+create policy "Users can leave rooms"
+on public.room_members
+for delete
+to public
+using (auth.uid() = user_id);
+
+-- ============================================
+-- RLS POLICIES — messages
+-- ============================================
+
+create policy "Users can view messages in rooms they joined"
+on public.messages
+for select
+to public
+using (
+  auth.uid() in (
+    select user_id from public.room_members where room_members.room_id = messages.room_id
+  )
+);
 
 create policy "Authenticated users can send messages"
 on public.messages
@@ -128,12 +166,20 @@ for insert
 to public
 with check (auth.uid() = user_id);
 
-create policy "Users can mark others' messages as read"
+create policy "Users can mark messages as read"
 on public.messages
 for update
 to public
-using (auth.uid() != user_id)
-with check (auth.uid() != user_id);
+using (
+  auth.uid() in (
+    select user_id from public.room_members where room_members.room_id = messages.room_id
+  )
+)
+with check (
+  auth.uid() in (
+    select user_id from public.room_members where room_members.room_id = messages.room_id
+  )
+);
 
 -- ============================================
 -- RLS POLICIES — conversations
@@ -191,6 +237,31 @@ with check (
     select conversations.user2_id from conversations where conversations.id = direct_messages.conversation_id
   )
 );
+
+-- ============================================
+-- RLS POLICIES — room_members
+-- ============================================
+
+create policy "members can view membership"
+on room_members for select
+using (
+  exists (
+    select 1 from room_members rm
+    where rm.room_id = room_members.room_id and rm.user_id = auth.uid()
+  )
+  or
+  exists (
+    select 1 from rooms r where r.id = room_members.room_id and r.is_public = true
+  )
+);
+
+create policy "users can join rooms"
+on room_members for insert
+with check (auth.uid() = user_id);
+
+create policy "users can leave rooms"
+on room_members for delete
+using (auth.uid() = user_id);
 
 -- ============================================
 -- TRIGGER — auto-create profile on signup

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:suhbat/features/chat/providers/room_members_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 
@@ -41,6 +42,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(messagesProvider(widget.roomId));
+    final isMemberAsync = ref.watch(isRoomMemberProvider(widget.roomId));
 
     ref.listen(messagesProvider(widget.roomId), (_, next) {
       next.whenData((_) {
@@ -137,7 +139,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 },
               ),
             ),
-            MessageInput(controller: _messageController, onSend: _sendMessage),
+            isMemberAsync.when(
+              data: (isMember) => isMember
+                  ? MessageInput(
+                      controller: _messageController,
+                      onSend: _sendMessage,
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await ref
+                              .read(roomMembersRepositoryProvider)
+                              .joinRoom(widget.roomId);
+                          ref.invalidate(isRoomMemberProvider(widget.roomId));
+                        },
+                        child: const Text('Join Room'),
+                      ),
+                    ),
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+            ),
           ],
         ),
       ),
