@@ -10,6 +10,7 @@ import 'package:suhbat/features/search/presentation/search_delegate.dart';
 import 'package:suhbat/features/direct_message/data/dm_repository.dart';
 
 import 'package:suhbat/features/widgets/app_avatar.dart';
+import 'package:suhbat/features/widgets/chatListTile.dart';
 
 class RoomsScreen extends ConsumerStatefulWidget {
   const RoomsScreen({super.key});
@@ -112,17 +113,11 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
               itemCount: rooms.length,
               itemBuilder: (context, index) {
                 final room = rooms[index];
-                return ListTile(
-                  title: Text(room.name),
-                  leading: AppAvatar(
-                    label: room.name,
-                    radius: 20,
-                    fontSize: 16,
-                  ),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    context.push('/chat/${room.id}/${room.name}');
-                  },
+                return ChatListTile(
+                  title: room.name,
+                  lastMessage: room.lastMessage,
+                  lastMessageTime: room.lastMessageTime,
+                  onTap: () => context.push('/chat/${room.id}/${room.name}'),
                 );
               },
             ),

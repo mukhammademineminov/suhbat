@@ -23,6 +23,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -162,14 +163,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     )
                   : Padding(
                       padding: const EdgeInsets.all(16.0),
+
                       child: ElevatedButton(
-                        onPressed: () async {
-                          await ref
-                              .read(roomMembersRepositoryProvider)
-                              .joinRoom(widget.roomId);
-                          ref.invalidate(isRoomMemberProvider(widget.roomId));
-                        },
-                        child: const Text('Join Room'),
+                        onPressed: _isLoading
+                            ? null
+                            : () async {
+                                setState(() {
+                                  _isLoading = true;
+                                });
+
+                                await ref
+                                    .read(roomMembersRepositoryProvider)
+                                    .joinRoom(widget.roomId);
+                                ref.invalidate(
+                                  isRoomMemberProvider(widget.roomId),
+                                );
+                              },
+                        child: _isLoading
+                            ? SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(),
+                              )
+                            : Text('Join Room'),
                       ),
                     ),
               loading: () => const SizedBox.shrink(),

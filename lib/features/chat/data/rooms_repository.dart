@@ -5,35 +5,26 @@ class RoomRepository {
   final SupabaseClient _client;
   RoomRepository(this._client);
 
-  Future<List<Room>> getRooms() async {
-    final data = await _client
-        .from('rooms')
-        .select()
-        .order('created_at', ascending: true);
-
-    return (data as List).map((e) => Room.fromMap(e)).toList();
-  }
-
   Future<List<Room>> getMyRooms() async {
-    final userId = _client.auth.currentUser!.id;
+  final userId = _client.auth.currentUser!.id;
 
-    final memberData = await _client
-        .from('room_members')
-        .select('room_id')
-        .eq('user_id', userId)
-        .order('joined_at', ascending: true);
+  final memberData = await _client
+      .from('room_members')
+      .select('room_id')
+      .eq('user_id', userId)
+      .order('joined_at', ascending: true);
 
-    if (memberData.isEmpty) return [];
+  if (memberData.isEmpty) return [];
 
-    final roomIds = (memberData as List).map((e) => e['room_id'] as String).toList();
+  final roomIds = (memberData as List).map((e) => e['room_id'] as String).toList();
 
-    final roomData = await _client
-        .from('rooms')
-        .select()
-        .inFilter('id', roomIds);
+  final roomData = await _client
+      .from('rooms')
+      .select('*, messages(content, created_at)')
+      .inFilter('id', roomIds);
 
-    return (roomData as List).map((e) => Room.fromMap(e)).toList();
-  }
+  return (roomData as List).map((e) => Room.fromMap(e)).toList();
+}
 
   Future<Room> createRoom(String name) async {
     final userId = _client.auth.currentUser!.id;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppAvatar extends StatelessWidget {
-  final String? label;       // username yoki room nomi
-  final String? imageUrl;    // kelajakda avatar upload uchun
+  final String? label;       
+  final String? imageUrl;    
   final double radius;
   final VoidCallback? onTap;
   final double fontSize;
