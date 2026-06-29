@@ -114,9 +114,29 @@ class DmRepository {
           .select('id, username')
           .eq('id', otherUserId)
           .single();
-
-      conversations.add(Conversation.fromMap(e, userId, profile));
+      final lastMessageData = await _supabase
+          .from('direct_messages')
+          .select('content, created_at')
+          .eq('conversation_id', e['id'])
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      
+      conversations.add(Conversation.fromMap(
+        e,
+        userId, 
+        profile,
+        lastMessage: lastMessageData?['content'] as String?,
+        lastMessageTime: lastMessageData != null 
+        ? DateTime.parse(lastMessageData['created_at'])
+        : null,
+      ));
     }
+    conversations.sort((a, b) {
+      final aTime = a.lastMessageTime ?? a.createdAt;
+      final bTime = b.lastMessageTime ?? b.createdAt;
+      return bTime.compareTo(aTime);
+    });
     return conversations;
   }
 

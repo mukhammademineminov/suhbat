@@ -11,8 +11,8 @@ final messagesProvider = StreamProvider.family<List<DmMessage>, String>((ref, ro
   return ref.read(dmRepositoryProvider).messagesStream(roomId);
 });
 
-final conversationProvider = StreamProvider.autoDispose<List<Conversation>>((ref) {
-  return ref.watch(dmRepositoryProvider).conversationsStream();
+final conversationProvider = FutureProvider.autoDispose<List<Conversation>>((ref) async {
+  return ref.read(dmRepositoryProvider).getConversations();
 });
 
 final dmMessagesProvider = StreamProvider.family<List<DmMessage>, String>((ref, conversationId) {

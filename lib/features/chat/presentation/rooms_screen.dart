@@ -134,18 +134,13 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
                 itemBuilder: (context, index) {
                   final conversation = conversations[index];
 
-                  return ListTile(
-                    title: Text(conversation.otherUsername ?? 'Unknown'),
-                    leading: AppAvatar(
-                      label: conversation.otherUsername ?? 'U',
-                      radius: 20,
-                      fontSize: 16,
+                  return ChatListTile(
+                    title: conversation.otherUsername ?? 'Unknown',
+                    lastMessage: conversation.lastMessage,
+                    lastMessageTime: conversation.lastMessageTime,
+                    onTap: () => context.push(
+                      '/dm/${conversation.id}/${conversation.otherUsername}',
                     ),
-                    onTap: () {
-                      context.push(
-                        '/dm/${conversation.id}/${conversation.otherUsername}',
-                      );
-                    },
                   );
                 },
               );
