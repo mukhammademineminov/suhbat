@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:suhbat/features/chat/providers/room_members_provider.dart';
 
 import 'package:suhbat/features/chat/providers/rooms_provider.dart';
 import 'package:suhbat/features/direct_message/providers/dm_provider.dart';
@@ -11,6 +12,7 @@ import 'package:suhbat/features/direct_message/data/dm_repository.dart';
 
 import 'package:suhbat/features/widgets/app_avatar.dart';
 import 'package:suhbat/features/widgets/chatListTile.dart';
+import 'package:suhbat/utils/dialog_utils.dart';
 
 class RoomsScreen extends ConsumerStatefulWidget {
   const RoomsScreen({super.key});
@@ -113,11 +115,47 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
               itemCount: rooms.length,
               itemBuilder: (context, index) {
                 final room = rooms[index];
-                return ChatListTile(
-                  title: room.name,
-                  lastMessage: room.lastMessage,
-                  lastMessageTime: room.lastMessageTime,
-                  onTap: () => context.push('/chat/${room.id}/${room.name}'),
+                return Dismissible(
+                  key: Key(room.id),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (_) async {
+                    final confirm = await DialogUtils.showConfirmDialog(
+                      context,
+                      title: 'Leave Room',
+                      content: 'Are you sure you want to leave "${room.name}"?',
+                    );
+
+                    if (confirm && context.mounted) {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) =>
+                            const Center(child: CircularProgressIndicator()),
+                      );
+
+                      await ref
+                          .read(roomMembersRepositoryProvider)
+                          .leaveRoom(room.id);
+                      ref.invalidate(roomsProvider);
+
+                      if (context.mounted) Navigator.pop(context);
+                    }
+
+                    return false;
+                  },
+                  onDismissed: null, // yoki olib tashla
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    child: const Icon(Icons.exit_to_app, color: Colors.white),
+                  ),
+                  child: ChatListTile(
+                    title: room.name,
+                    lastMessage: room.lastMessage,
+                    lastMessageTime: room.lastMessageTime,
+                    onTap: () => context.push('/chat/${room.id}/${room.name}'),
+                  ),
                 );
               },
             ),
@@ -133,13 +171,55 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
                 itemCount: conversations.length,
                 itemBuilder: (context, index) {
                   final conversation = conversations[index];
+                  return Dismissible(
+                    key: Key(conversation.id),
+                    direction: DismissDirection.endToStart,
+                    confirmDismiss: (_) async {
+                      final confirm = await DialogUtils.showConfirmDialog(
+                        context,
+                        title: 'Delete Conversation',
+                        content: 'This will delete all messages. Continue?',
+                      );
 
-                  return ChatListTile(
-                    title: conversation.otherUsername ?? 'Unknown',
-                    lastMessage: conversation.lastMessage,
-                    lastMessageTime: conversation.lastMessageTime,
-                    onTap: () => context.push(
-                      '/dm/${conversation.id}/${conversation.otherUsername}',
+                      if (confirm && context.mounted) {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) =>
+                              const Center(child: CircularProgressIndicator()),
+                        );
+
+                        await ref
+                            .read(dmRepositoryProvider)
+                            .deleteConversation(conversation.id);
+                        ref.invalidate(conversationProvider);
+
+                        if (context.mounted) Navigator.pop(context);
+                      }
+
+                      return false;
+                    },
+                    onDismissed: (_) async {
+                      await ref
+                          .read(dmRepositoryProvider)
+                          .deleteConversation(conversation.id);
+                      if (!context.mounted) {
+                        ref.invalidate(conversationProvider);
+                      }
+                    },
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    child: ChatListTile(
+                      title: conversation.otherUsername ?? 'Unknown',
+                      lastMessage: conversation.lastMessage,
+                      lastMessageTime: conversation.lastMessageTime,
+                      onTap: () => context.push(
+                        '/dm/${conversation.id}/${conversation.otherUsername}',
+                      ),
                     ),
                   );
                 },

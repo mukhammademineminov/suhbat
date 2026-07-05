@@ -140,6 +140,18 @@ class DmRepository {
     return conversations;
   }
 
+  Future<void> deleteConversation(String conversationId) async {
+  await _supabase
+      .from('direct_messages')
+      .delete()
+      .eq('conversation_id', conversationId);
+
+  await _supabase
+      .from('conversations')
+      .delete()
+      .eq('id', conversationId);
+}
+
   Stream<List<Conversation>> conversationsStream() {
     final userId = _supabase.auth.currentUser!.id;
 

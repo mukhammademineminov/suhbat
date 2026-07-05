@@ -217,6 +217,24 @@ with check (
   )
 );
 
+create policy "Users can delete their own conversations"
+on public.conversations
+for delete
+to public
+using (auth.uid() = user1_id or auth.uid() = user2_id);
+
+create policy "Users can delete their own direct messages"
+on public.direct_messages
+for delete
+to public
+using (
+  auth.uid() in (
+    select user1_id from conversations where id = direct_messages.conversation_id
+    union
+    select user2_id from conversations where id = direct_messages.conversation_id
+  )
+);
+
 -- ============================================
 -- RLS POLICIES — room_members
 -- ============================================
