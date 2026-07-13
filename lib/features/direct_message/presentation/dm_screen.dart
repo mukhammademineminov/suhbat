@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:suhbat/services/notification_service.dart';
 
 import 'package:suhbat/features/widgets/message_bubble.dart';
 import 'package:suhbat/features/widgets/date_separator.dart';
 
 import 'package:suhbat/features/direct_message/providers/dm_provider.dart';
+import 'package:suhbat/core/providers/active_chat_provider.dart';
 import 'package:suhbat/features/direct_message/data/dm_message.dart';
 import 'package:suhbat/features/widgets/message_input.dart';
 
@@ -34,6 +36,8 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
       await ref
           .read(dmRepositoryProvider)
           .markMessagesAsRead(widget.conversationId);
+      // Set the active chat conversation ID in the provider  
+    ref.read(activeChatProvider.notifier).state = widget.conversationId;  
     });
   }
 
@@ -41,6 +45,10 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+
+    Future.microtask(() {
+    ref.read(activeChatProvider.notifier).state = null;
+  });
     super.dispose();
   }
 
@@ -48,19 +56,41 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(dmMessagesProvider(widget.conversationId));
 
-    ref.listen(dmMessagesProvider(widget.conversationId), (_, next) {
-      ref.invalidate(dmMessagesProvider(widget.conversationId));
-      next.whenData((_) {
-        ref.read(dmRepositoryProvider).markMessagesAsRead(widget.conversationId);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_scrollController.hasClients) {
-            _scrollController.animateTo(
-              _scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
+    ref.listen(dmMessagesProvider(widget.conversationId), (previous, next) {
+      //ref.invalidate(dmMessagesProvider(widget.conversationId));
+      next.whenData((messages) {
+        debugPrint('Messages updated: ${messages.length} messages');
+        //mark as read
+        ref
+            .read(dmRepositoryProvider)
+            .markMessagesAsRead(widget.conversationId);
+        // notification
+        if (previous != null) {
+          final prevMessages = previous.value ?? [];
+          
+          debugPrint('Sender: ${messages.isNotEmpty ? messages.last.senderId : 'No messages'}');
+        debugPrint('Current user: ${Supabase.instance.client.auth.currentUser!.id}');
+          if (messages.length > prevMessages.length) {
+            final newMessage = messages.last;
+            if (newMessage.senderId !=
+                Supabase.instance.client.auth.currentUser!.id) {
+                  debugPrint('Showing notification...');
+              NotificationService.showNotification(
+                title: newMessage.username ?? 'New message',
+                body: newMessage.content,
+              );
+            }
           }
-        });
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_scrollController.hasClients) {
+              _scrollController.animateTo(
+                _scrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            }
+          });
+        }
       });
     });
     return Scaffold(

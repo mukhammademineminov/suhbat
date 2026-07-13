@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:suhbat/features/chat/providers/chat_provider.dart';
+import 'package:suhbat/core/providers/active_chat_provider.dart';
 import 'package:suhbat/features/widgets/message_bubble.dart';
 import 'package:suhbat/features/chat/data/message.dart';
 import 'package:suhbat/features/widgets/date_separator.dart';
@@ -29,6 +30,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    Future.microtask(() {
+    ref.read(activeChatProvider.notifier).state = null;
+  });
     super.dispose();
   }
 
@@ -43,6 +47,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             .read(chatRepositoryProvider)
             .markMessagesAsRead(widget.roomId);
         debugPrint('markMessagesAsRead success');
+        // Set the active chat room ID in the provider
+        ref.read(activeChatProvider.notifier).state = widget.roomId;
       } catch (e) {
         debugPrint('Error marking messages as read: $e.toString()');
       }

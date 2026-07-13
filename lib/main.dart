@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:suhbat/services/notification_service.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -19,6 +20,9 @@ void main() async {
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
 
   );
+
+  await NotificationService.init();
+
   runApp(const ProviderScope(child: MyApp()));
 }
 

@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:suhbat/features/chat/providers/room_members_provider.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:suhbat/services/notification_service.dart';
+import 'package:suhbat/core/providers/global_messages_provider.dart';
+import 'package:suhbat/core/providers/active_chat_provider.dart';
 import 'package:suhbat/features/chat/providers/rooms_provider.dart';
 import 'package:suhbat/features/direct_message/providers/dm_provider.dart';
 import 'package:suhbat/features/profile/providers/profile_provider.dart';
@@ -11,7 +15,7 @@ import 'package:suhbat/features/search/presentation/search_delegate.dart';
 import 'package:suhbat/features/direct_message/data/dm_repository.dart';
 
 import 'package:suhbat/features/widgets/app_avatar.dart';
-import 'package:suhbat/features/widgets/chatListTile.dart';
+import 'package:suhbat/features/widgets/chat_list_tile.dart';
 import 'package:suhbat/utils/dialog_utils.dart';
 
 class RoomsScreen extends ConsumerStatefulWidget {
@@ -47,6 +51,47 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
     final roomsAsync = ref.watch(roomsProvider);
     final profileAsync = ref.watch(profilesprovider);
     final directMessagesAsync = ref.watch(conversationProvider);
+
+    ref.listen(globalMessagesProvider, (previous, next) {
+      debugPrint('Global messages updated: $next');
+    next.whenData((message) {
+      debugPrint('Latest message: $message');
+
+      if (message == null) return;
+      final activeChat = ref.read(activeChatProvider);
+      final currentUserId = Supabase.instance.client.auth.currentUser!.id;
+      
+      if (message['user_id'] != currentUserId && 
+          activeChat != message['room_id']) {
+            debugPrint('Notification triggered for message: $message');
+        NotificationService.showNotification(
+          title: 'New message',
+          body: message['content'] ?? '',
+        );
+        ref.invalidate(roomsProvider);
+      }
+    });
+  });
+
+  ref.listen(globalDmMessagesProvider, (previous, next) {
+    debugPrint('Global DM messages updated: $next');
+    next.whenData((message) {
+      debugPrint('Latest DM message: $message');
+      if (message == null) return;
+      final activeChat = ref.read(activeChatProvider);
+      final currentUserId = Supabase.instance.client.auth.currentUser!.id;
+      
+      if (message['sender_id'] != currentUserId && 
+          activeChat != message['conversation_id']) {
+            debugPrint('Notification triggered for message: $message');
+        NotificationService.showNotification(
+          title: 'New message',
+          body: message['content'] ?? '',
+        );
+        ref.invalidate(conversationProvider);
+      }
+    });
+  });
 
     return Scaffold(
       appBar: AppBar(
@@ -143,7 +188,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
 
                     return false;
                   },
-                  onDismissed: null, // yoki olib tashla
+                  onDismissed: null, 
                   background: Container(
                     color: Colors.red,
                     alignment: Alignment.centerRight,
