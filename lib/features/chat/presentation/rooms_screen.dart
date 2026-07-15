@@ -53,45 +53,38 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
     final directMessagesAsync = ref.watch(conversationProvider);
 
     ref.listen(globalMessagesProvider, (previous, next) {
-      debugPrint('Global messages updated: $next');
-    next.whenData((message) {
-      debugPrint('Latest message: $message');
+      next.whenData((message) {
+        if (message == null) return;
+        final activeChat = ref.read(activeChatProvider);
+        final currentUserId = Supabase.instance.client.auth.currentUser!.id;
 
-      if (message == null) return;
-      final activeChat = ref.read(activeChatProvider);
-      final currentUserId = Supabase.instance.client.auth.currentUser!.id;
-      
-      if (message['user_id'] != currentUserId && 
-          activeChat != message['room_id']) {
-            debugPrint('Notification triggered for message: $message');
-        NotificationService.showNotification(
-          title: 'New message',
-          body: message['content'] ?? '',
-        );
-        ref.invalidate(roomsProvider);
-      }
+        if (message['user_id'] != currentUserId &&
+            activeChat != message['room_id']) {
+          NotificationService.showNotification(
+            title: 'New message',
+            body: message['content'] ?? '',
+          );
+          ref.invalidate(roomsProvider);
+        }
+      });
     });
-  });
 
-  ref.listen(globalDmMessagesProvider, (previous, next) {
-    debugPrint('Global DM messages updated: $next');
-    next.whenData((message) {
-      debugPrint('Latest DM message: $message');
-      if (message == null) return;
-      final activeChat = ref.read(activeChatProvider);
-      final currentUserId = Supabase.instance.client.auth.currentUser!.id;
-      
-      if (message['sender_id'] != currentUserId && 
-          activeChat != message['conversation_id']) {
-            debugPrint('Notification triggered for message: $message');
-        NotificationService.showNotification(
-          title: 'New message',
-          body: message['content'] ?? '',
-        );
-        ref.invalidate(conversationProvider);
-      }
+    ref.listen(globalDmMessagesProvider, (previous, next) {
+      next.whenData((message) {
+        if (message == null) return;
+        final activeChat = ref.read(activeChatProvider);
+        final currentUserId = Supabase.instance.client.auth.currentUser!.id;
+
+        if (message['sender_id'] != currentUserId &&
+            activeChat != message['conversation_id']) {
+          NotificationService.showNotification(
+            title: 'New message',
+            body: message['content'] ?? '',
+          );
+          ref.invalidate(conversationProvider);
+        }
+      });
     });
-  });
 
     return Scaffold(
       appBar: AppBar(
@@ -150,6 +143,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
         onPressed: () => _showCreateRoomDialog(context, ref),
         child: const Icon(Icons.add),
       ),
+
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -188,7 +182,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
 
                     return false;
                   },
-                  onDismissed: null, 
+                  onDismissed: null,
                   background: Container(
                     color: Colors.red,
                     alignment: Alignment.centerRight,

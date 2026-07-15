@@ -39,14 +39,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    debugPrint('ChatScreen initState called');
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      debugPrint('PostFrameCallback running');
       try {
         await ref
             .read(chatRepositoryProvider)
             .markMessagesAsRead(widget.roomId);
-        debugPrint('markMessagesAsRead success');
         // Set the active chat room ID in the provider
         ref.read(activeChatProvider.notifier).state = widget.roomId;
       } catch (e) {

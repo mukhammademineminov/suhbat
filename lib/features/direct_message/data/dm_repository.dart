@@ -55,7 +55,7 @@ class DmRepository {
         .eq('conversation_id', conversationId)
         .order('created_at', ascending: true)
         .asyncMap((data) async {
-          debugPrint('Stream update: ${data.length} messages');
+  
           final userIds = data
               .map((e) => e['sender_id'] as String)
               .toSet()

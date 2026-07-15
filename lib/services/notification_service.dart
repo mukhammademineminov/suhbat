@@ -10,6 +10,9 @@ class NotificationService {
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
+      defaultPresentAlert: true,
+      defaultPresentBadge: true,
+      defaultPresentSound: true,
     );
     const macOS = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -21,24 +24,29 @@ class NotificationService {
       iOS: iOS,
       macOS: macOS,
     );
-    await _notifications.initialize(settings: settings,
-        onDidReceiveNotificationResponse: (details) {
-          debugPrint('Notification tapped: ${details.payload}');
-    });
+    await _notifications.initialize(
+      settings: settings,
+      onDidReceiveNotificationResponse: (details) {
+      },
+    );
     await _notifications
         .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin
         >()
         ?.requestPermissions(alert: true, badge: true, sound: true);
     await _notifications
-        .resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin
+        >()
         ?.requestPermissions(alert: true, badge: true, sound: true);
+
   }
 
   static Future<void> showNotification({
     required String title,
     required String body,
   }) async {
+    try {
     const androidDetails = AndroidNotificationDetails(
       'suhbat_channel',
       'Suhbat Notifications',
@@ -61,11 +69,15 @@ class NotificationService {
       macOS: macOSDetails,
     );
 
-    await _notifications.show(
-      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title: title,
-      body: body,
-      notificationDetails: details,
-    );
+    
+      await _notifications.show(
+        id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title: title,
+        body: body,
+        notificationDetails: details,
+      );
+    } catch (e) {
+      debugPrint('🔔 showNotification error: $e');
+    }
   }
 }

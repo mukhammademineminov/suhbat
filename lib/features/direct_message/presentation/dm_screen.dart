@@ -36,8 +36,8 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
       await ref
           .read(dmRepositoryProvider)
           .markMessagesAsRead(widget.conversationId);
-      // Set the active chat conversation ID in the provider  
-    ref.read(activeChatProvider.notifier).state = widget.conversationId;  
+      // Set the active chat conversation ID in the provider
+      ref.read(activeChatProvider.notifier).state = widget.conversationId;
     });
   }
 
@@ -47,8 +47,8 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
     _scrollController.dispose();
 
     Future.microtask(() {
-    ref.read(activeChatProvider.notifier).state = null;
-  });
+      ref.read(activeChatProvider.notifier).state = null;
+    });
     super.dispose();
   }
 
@@ -57,9 +57,7 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
     final messagesAsync = ref.watch(dmMessagesProvider(widget.conversationId));
 
     ref.listen(dmMessagesProvider(widget.conversationId), (previous, next) {
-      //ref.invalidate(dmMessagesProvider(widget.conversationId));
       next.whenData((messages) {
-        debugPrint('Messages updated: ${messages.length} messages');
         //mark as read
         ref
             .read(dmRepositoryProvider)
@@ -67,14 +65,10 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
         // notification
         if (previous != null) {
           final prevMessages = previous.value ?? [];
-          
-          debugPrint('Sender: ${messages.isNotEmpty ? messages.last.senderId : 'No messages'}');
-        debugPrint('Current user: ${Supabase.instance.client.auth.currentUser!.id}');
           if (messages.length > prevMessages.length) {
             final newMessage = messages.last;
             if (newMessage.senderId !=
                 Supabase.instance.client.auth.currentUser!.id) {
-                  debugPrint('Showing notification...');
               NotificationService.showNotification(
                 title: newMessage.username ?? 'New message',
                 body: newMessage.content,
