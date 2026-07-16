@@ -125,15 +125,16 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
               if (result.startsWith('room:')) {
                 final parts = result.split(':');
                 ref.invalidate(roomsProvider);
-                context.push('/chat/${parts[1]}/${parts[2]}');
+                context.push('/chat/${parts[1]}/${Uri.encodeComponent(parts[2])}');
               } else if (result.startsWith('user:')) {
                 final parts = result.split(':');
+                final router = GoRouter.of(context);
                 final conversationId = await DmRepository()
                     .getOrCreateConversation(parts[1]);
 
                 if (!context.mounted) return;
                 ref.invalidate(conversationProvider);
-                context.push('/dm/$conversationId/${parts[2]}');
+                router.push('/dm/$conversationId/${Uri.encodeComponent(parts[2])}');
               }
             },
           ),
@@ -193,7 +194,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
                     title: room.name,
                     lastMessage: room.lastMessage,
                     lastMessageTime: room.lastMessageTime,
-                    onTap: () => context.push('/chat/${room.id}/${room.name}'),
+                    onTap: () => context.push('/chat/${room.id}/${Uri.encodeComponent(room.name)}'),
                   ),
                 );
               },
@@ -257,7 +258,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
                       lastMessage: conversation.lastMessage,
                       lastMessageTime: conversation.lastMessageTime,
                       onTap: () => context.push(
-                        '/dm/${conversation.id}/${conversation.otherUsername}',
+                        '/dm/${conversation.id}/${Uri.encodeComponent(conversation.otherUsername ?? '')}',
                       ),
                     ),
                   );

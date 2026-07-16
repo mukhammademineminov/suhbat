@@ -77,7 +77,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         title: Text(widget.roomName),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () async {
+            final navigator = Navigator.of(context);
+            final router = GoRouter.of(context);
+            final didPop = await navigator.maybePop();
+            if (!didPop && mounted) router.go('/rooms_chat');
+          },
         ),
       ),
       body: GestureDetector(
@@ -145,11 +150,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         userId: message.userId,
                         onAvatarTap: () async {
                           if (isMe) return;
+                          final router = GoRouter.of(context);
                           final conversationId = await DmRepository()
                               .getOrCreateConversation(message.userId);
-                          if (!context.mounted) return;
-                          context.push(
-                            '/dm/$conversationId/${message.username}',
+                          if (!mounted) return;
+                          router.push(
+                            '/dm/$conversationId/${Uri.encodeComponent(message.username ?? '')}',
                           );
                         },
                       );

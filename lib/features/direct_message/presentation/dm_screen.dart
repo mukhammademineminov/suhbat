@@ -45,10 +45,10 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
-
-    Future.microtask(() {
+    // Set active chat to null synchronously to avoid using `ref` after dispose
+    try {
       ref.read(activeChatProvider.notifier).state = null;
-    });
+    } catch (_) {}
     super.dispose();
   }
 
@@ -92,7 +92,14 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
         title: Text(widget.userName),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () async {
+            final navigator = Navigator.of(context);
+            final router = GoRouter.of(context);
+            final didPop = await navigator.maybePop();
+            if (!didPop && mounted) {
+              router.go('/rooms_chat');
+            }
+          },
         ),
       ),
       body: GestureDetector(
