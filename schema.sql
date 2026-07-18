@@ -45,8 +45,8 @@ create table public.messages (
 -- Conversations table (for DMs)
 create table public.conversations (
   id uuid not null default gen_random_uuid (),
-  user1_id uuid null default gen_random_uuid (),
-  user2_id uuid null default gen_random_uuid (),
+  user1_id uuid null,
+  user2_id uuid null,
   created_at timestamp with time zone not null default now(),
   constraint conversations_pkey primary key (id),
   constraint conversations_user1_id_fkey foreign key (user1_id) references profiles (id),
@@ -57,8 +57,8 @@ create table public.conversations (
 create table public.direct_messages (
   id uuid not null default gen_random_uuid (),
   created_at timestamp with time zone not null default now(),
-  conversation_id uuid null default gen_random_uuid (),
-  sender_id uuid null default gen_random_uuid (),
+  conversation_id uuid null,
+  sender_id uuid null,
   content text null,
   is_read boolean not null default false,
   constraint direct_messages_pkey primary key (id),
