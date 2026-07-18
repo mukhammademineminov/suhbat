@@ -25,7 +25,10 @@ A real-time group chat application built with Flutter and Supabase, created as a
 - 👤 User profiles with avatar initials
 - ✅ Read receipts
 - 📅 Date separators between messages
-
+- 💬 Direct messaging (DM)
+- 🔍 Search rooms and users
+- 🔔 In-app notifications
+- 🚪 Join/leave rooms
 ## Tech Stack
 
 | Technology | Usage |
@@ -34,6 +37,7 @@ A real-time group chat application built with Flutter and Supabase, created as a
 | Supabase | Backend, Auth, Realtime DB |
 | Riverpod | State management |
 | go_router | Navigation |
+| flutter_local_notifications | In-app notifications |
 
 ## Getting Started
 
