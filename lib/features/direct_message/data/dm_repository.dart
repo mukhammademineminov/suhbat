@@ -20,14 +20,15 @@ class DmRepository {
     final userId = _supabase.auth.currentUser!.id;
     await _supabase.from('direct_messages').insert({
       'conversation_id': conversationId,
-      'sender_id': userId, 
+      'sender_id': userId,
       'content': content,
     });
   }
 
   Future<String> getOrCreateConversation(String otherUserId) async {
     final userId = _supabase.auth.currentUser!.id;
-    if (userId == otherUserId) throw Exception('Cannot start a conversation with yourself');
+    if (userId == otherUserId)
+      throw Exception('Cannot start a conversation with yourself');
 
     final existing = await _supabase
         .from('conversations')
@@ -55,7 +56,6 @@ class DmRepository {
         .eq('conversation_id', conversationId)
         .order('created_at', ascending: true)
         .asyncMap((data) async {
-  
           final userIds = data
               .map((e) => e['sender_id'] as String)
               .toSet()
@@ -114,23 +114,36 @@ class DmRepository {
           .select('id, username')
           .eq('id', otherUserId)
           .single();
+
       final lastMessageData = await _supabase
           .from('direct_messages')
-          .select('content, created_at')
+          .select('content, created_at, is_read, sender_id')
           .eq('conversation_id', e['id'])
           .order('created_at', ascending: false)
           .limit(1)
           .maybeSingle();
-      
-      conversations.add(Conversation.fromMap(
-        e,
-        userId, 
-        profile,
-        lastMessage: lastMessageData?['content'] as String?,
-        lastMessageTime: lastMessageData != null 
-        ? DateTime.parse(lastMessageData['created_at'])
-        : null,
-      ));
+
+      final unreadData = await _supabase
+          .from('direct_messages')
+          .select()
+          .eq('conversation_id', e['id'])
+          .eq('is_read', false)
+          .neq('sender_id', userId);
+
+      final unreadCount = (unreadData as List).length;
+
+      conversations.add(
+        Conversation.fromMap(
+          e,
+          userId,
+          profile,
+          lastMessage: lastMessageData?['content'] as String?,
+          lastMessageTime: lastMessageData != null
+              ? DateTime.parse(lastMessageData['created_at'])
+              : null,
+          unreadCount: unreadCount,
+        ),
+      );
     }
     conversations.sort((a, b) {
       final aTime = a.lastMessageTime ?? a.createdAt;
@@ -141,16 +154,13 @@ class DmRepository {
   }
 
   Future<void> deleteConversation(String conversationId) async {
-  await _supabase
-      .from('direct_messages')
-      .delete()
-      .eq('conversation_id', conversationId);
+    await _supabase
+        .from('direct_messages')
+        .delete()
+        .eq('conversation_id', conversationId);
 
-  await _supabase
-      .from('conversations')
-      .delete()
-      .eq('id', conversationId);
-}
+    await _supabase.from('conversations').delete().eq('id', conversationId);
+  }
 
   Stream<List<Conversation>> conversationsStream() {
     final userId = _supabase.auth.currentUser!.id;
@@ -165,21 +175,24 @@ class DmRepository {
               .toList();
 
           final otherUserIds = filteredData
-              .map((e) => e['user1_id'] == userId
-                  ? e['user2_id'] as String
-                  : e['user1_id'] as String)
+              .map(
+                (e) => e['user1_id'] == userId
+                    ? e['user2_id'] as String
+                    : e['user1_id'] as String,
+              )
               .toSet()
               .toList();
 
           final profiles = otherUserIds.isEmpty
               ? <Map<String, dynamic>>[]
               : await _supabase
-                  .from('profiles')
-                  .select('id, username')
-                  .inFilter('id', otherUserIds);
+                    .from('profiles')
+                    .select('id, username')
+                    .inFilter('id', otherUserIds);
 
           final profileMap = {
-            for (final p in profiles) p['id'] as String: p['username'] as String?,
+            for (final p in profiles)
+              p['id'] as String: p['username'] as String?,
           };
 
           return filteredData.map((e) {
@@ -187,11 +200,9 @@ class DmRepository {
                 ? e['user2_id'] as String
                 : e['user1_id'] as String;
 
-            return Conversation.fromMap(
-              e,
-              userId,
-              {'username': profileMap[otherUserId]},
-            );
+            return Conversation.fromMap(e, userId, {
+              'username': profileMap[otherUserId],
+            });
           }).toList();
         });
   }

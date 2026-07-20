@@ -194,6 +194,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
                     title: room.name,
                     lastMessage: room.lastMessage,
                     lastMessageTime: room.lastMessageTime,
+                    unreadCount: room.unreadCount,
                     onTap: () => context.push('/chat/${room.id}/${Uri.encodeComponent(room.name)}'),
                   ),
                 );
@@ -257,6 +258,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
                       title: conversation.otherUsername ?? 'Unknown',
                       lastMessage: conversation.lastMessage,
                       lastMessageTime: conversation.lastMessageTime,
+                      unreadCount: conversation.unreadCount,
                       onTap: () => context.push(
                         '/dm/${conversation.id}/${Uri.encodeComponent(conversation.otherUsername ?? '')}',
                       ),

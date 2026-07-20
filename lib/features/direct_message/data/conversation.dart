@@ -7,6 +7,7 @@ class Conversation {
   final String? otherUserId;
   final String? lastMessage;
   final DateTime? lastMessageTime;
+  final int unreadCount;
 
   Conversation({
     required this.id,
@@ -17,6 +18,7 @@ class Conversation {
     this.otherUserId,
     this.lastMessage,
     this.lastMessageTime,
+    this.unreadCount = 0,
   });
 
   factory Conversation.fromMap(
@@ -25,6 +27,7 @@ class Conversation {
     Map<String, dynamic> otherProfile, {
     String? lastMessage,
     DateTime? lastMessageTime,
+    int unreadCount = 0,
   }) {
     return Conversation(
       id: map['id'] as String,
@@ -35,6 +38,7 @@ class Conversation {
       otherUserId: otherProfile['id'] as String?,
       lastMessage: lastMessage,
       lastMessageTime: lastMessageTime,
+      unreadCount: unreadCount,
     );
   }
 }

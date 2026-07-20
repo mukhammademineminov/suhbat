@@ -21,23 +21,38 @@ class ChatListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-  leading: AppAvatar(label: title, radius: 24, fontSize: 18),
-  title: Text(title),
-  subtitle: lastMessage != null 
-      ? Text(lastMessage!, maxLines: 1, overflow: TextOverflow.ellipsis)
-      : Text('No messages yet', style: TextStyle(fontStyle: FontStyle.italic)),
-  trailing: lastMessageTime != null
-      ? Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      leading: AppAvatar(label: title, radius: 24, fontSize: 18),
+      title: Text(title),
+      subtitle: lastMessage != null
+          ? Text(lastMessage!, maxLines: 1, overflow: TextOverflow.ellipsis)
+          : Text(
+              'No messages yet',
+              style: TextStyle(fontStyle: FontStyle.italic),
+            ),
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (lastMessageTime != null)
             Text(
-              formatMessageTime(lastMessageTime),
+              '${lastMessageTime!.toLocal().hour}:${lastMessageTime!.toLocal().minute.toString().padLeft(2, '0')}',
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
-          ],
-        )
-      : null,
-  onTap: onTap,
-);
+          if (unreadCount > 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '$unreadCount',
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+        ],
+      ),
+      onTap: onTap,
+    );
   }
 }
