@@ -72,6 +72,7 @@ class _DMChatScreenState extends ConsumerState<DMChatScreen> {
               NotificationService.showNotification(
                 title: newMessage.username ?? 'New message',
                 body: newMessage.content,
+                payload: ''
               );
             }
           }

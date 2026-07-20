@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:suhbat/features/chat/data/room.dart';
 import 'package:suhbat/features/chat/providers/room_members_provider.dart';
+import 'package:suhbat/features/direct_message/data/conversation.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:suhbat/services/notification_service.dart';
@@ -60,9 +62,16 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
 
         if (message['user_id'] != currentUserId &&
             activeChat != message['room_id']) {
+          final rooms = ref.read(roomsProvider).valueOrNull ?? [];
+          final room = rooms.firstWhere(
+            (r) => r.id == message['room_id'],
+            orElse: () =>
+                Room(id: '', name: 'New message', createdAt: DateTime.now()),
+          );
           NotificationService.showNotification(
-            title: 'New message',
+            title: room.name,
             body: message['content'] ?? '',
+            payload: 'room${message['room_id']}:${room.name}',
           );
           ref.invalidate(roomsProvider);
         }
@@ -77,9 +86,24 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
 
         if (message['sender_id'] != currentUserId &&
             activeChat != message['conversation_id']) {
+          final conversations =
+              ref.read(conversationProvider).valueOrNull ?? [];
+          final conversation = conversations.firstWhere(
+            (c) => c.id == message['conversation_id'],
+            orElse: () => Conversation(
+              id: '',
+              user1Id: '',
+              user2Id: '',
+              createdAt: DateTime.now(),
+              otherUsername: 'New message',
+            ),
+          );
+
           NotificationService.showNotification(
-            title: 'New message',
+            title: conversation.otherUsername ?? 'New message',
             body: message['content'] ?? '',
+            payload:
+                'dm:${message['conversation_id']}:${conversation.otherUsername}',
           );
           ref.invalidate(conversationProvider);
         }
@@ -125,7 +149,9 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
               if (result.startsWith('room:')) {
                 final parts = result.split(':');
                 ref.invalidate(roomsProvider);
-                context.push('/chat/${parts[1]}/${Uri.encodeComponent(parts[2])}');
+                context.push(
+                  '/chat/${parts[1]}/${Uri.encodeComponent(parts[2])}',
+                );
               } else if (result.startsWith('user:')) {
                 final parts = result.split(':');
                 final router = GoRouter.of(context);
@@ -134,7 +160,9 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
 
                 if (!context.mounted) return;
                 ref.invalidate(conversationProvider);
-                router.push('/dm/$conversationId/${Uri.encodeComponent(parts[2])}');
+                router.push(
+                  '/dm/$conversationId/${Uri.encodeComponent(parts[2])}',
+                );
               }
             },
           ),
@@ -195,7 +223,9 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
                     lastMessage: room.lastMessage,
                     lastMessageTime: room.lastMessageTime,
                     unreadCount: room.unreadCount,
-                    onTap: () => context.push('/chat/${room.id}/${Uri.encodeComponent(room.name)}'),
+                    onTap: () => context.push(
+                      '/chat/${room.id}/${Uri.encodeComponent(room.name)}',
+                    ),
                   ),
                 );
               },

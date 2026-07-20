@@ -44,7 +44,7 @@ class NotificationService {
 
   static Future<void> showNotification({
     required String title,
-    required String body,
+    required String body, required String payload,
   }) async {
     try {
     const androidDetails = AndroidNotificationDetails(
