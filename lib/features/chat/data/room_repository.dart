@@ -22,7 +22,8 @@ class RoomRepository {
 
     final roomData = await _client
         .from('rooms')
-        .select('*, messages(content, created_at, is_read, user_id)')
+        
+        .select('*, messages(content, created_at, is_read, user_id), room_members(user_id)')
         .inFilter('id', roomIds);
 
     return (roomData as List)

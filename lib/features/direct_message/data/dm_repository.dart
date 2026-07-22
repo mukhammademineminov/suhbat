@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:suhbat/features/direct_message/data/dm_message.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:suhbat/features/direct_message/data/conversation.dart';
@@ -27,8 +26,9 @@ class DmRepository {
 
   Future<String> getOrCreateConversation(String otherUserId) async {
     final userId = _supabase.auth.currentUser!.id;
-    if (userId == otherUserId)
+    if (userId == otherUserId) {
       throw Exception('Cannot start a conversation with yourself');
+    }
 
     final existing = await _supabase
         .from('conversations')

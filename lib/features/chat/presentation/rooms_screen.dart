@@ -223,9 +223,13 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen>
                     lastMessage: room.lastMessage,
                     lastMessageTime: room.lastMessageTime,
                     unreadCount: room.unreadCount,
-                    onTap: () => context.push(
-                      '/chat/${room.id}/${Uri.encodeComponent(room.name)}',
-                    ),
+                    onTap: () {
+                      debugPrint('memberCount: ${room.memberCount}');
+                      context.push(
+                        '/chat/${room.id}/${Uri.encodeComponent(room.name)}',
+                        extra: room.memberCount,
+                      );
+                    },
                   ),
                 );
               },

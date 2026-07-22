@@ -15,7 +15,8 @@ import 'package:suhbat/features/direct_message/data/dm_repository.dart';
 class ChatScreen extends ConsumerStatefulWidget {
   final String roomId;
   final String roomName;
-  const ChatScreen({super.key, required this.roomId, required this.roomName});
+  final int memberCount;
+  const ChatScreen({super.key, required this.roomId, required this.roomName, required this.memberCount});
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -74,7 +75,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.roomName),
+        title: Column(
+      crossAxisAlignment: CrossAxisAlignment.start, 
+      mainAxisSize: MainAxisSize.min, 
+      children: [
+        Text(
+          widget.roomName,
+          style: const TextStyle(fontSize: 18), 
+        ),
+        Text(
+          '${widget.memberCount} ${widget.memberCount == 0 ? 'member' : 'members'}', 
+          style: const TextStyle(
+            fontSize: 12, 
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () async {

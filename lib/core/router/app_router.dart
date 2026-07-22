@@ -10,9 +10,6 @@ import 'package:suhbat/features/chat/presentation/chat_screen.dart';
 import 'package:suhbat/features/profile/presentation/profile_screen.dart';
 import 'package:suhbat/features/direct_message/presentation/dm_screen.dart';
 
-
-
-
 class AuthChangeNotifier extends ChangeNotifier {
   AuthChangeNotifier() {
     Supabase.instance.client.auth.onAuthStateChange.listen((_) {
@@ -55,19 +52,17 @@ final router = GoRouter(
       path: '/profile',
       builder: (context, state) => const ProfileScreen(),
     ),
+    
     GoRoute(
       path: '/chat/:roomId/:roomName',
-      builder: (context, state) =>
-          ChatScreen(roomId: state.pathParameters['roomId']!,
-          roomName: state.pathParameters['roomName']!),
-    ),
-    GoRoute(
-      path: '/dm/:conversationId/:userName',
-      builder: (context, state) => DMChatScreen(
-        conversationId: state.pathParameters['conversationId']!,
-        userName: state.pathParameters['userName']!,
-        
-      ),
+      builder: (context, state) {
+      debugPrint('Router extra: ${state.extra}');
+      return  ChatScreen(
+        roomId: state.pathParameters['roomId']!,
+        roomName: state.pathParameters['roomName']!,
+        memberCount: (state.extra as int?) ?? 0,
+      );
+      }
     ),
   ],
 );

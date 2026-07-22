@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:suhbat/features/widgets/app_avatar.dart';
-import 'package:suhbat/utils/format_message_time.dart';
 
 class ChatListTile extends StatelessWidget {
   final String title;
