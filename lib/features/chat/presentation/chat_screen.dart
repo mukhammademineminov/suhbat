@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:suhbat/features/chat/providers/chat_provider.dart';
 import 'package:suhbat/core/providers/active_chat_provider.dart';
 import 'package:suhbat/features/widgets/message_bubble.dart';
-import 'package:suhbat/features/chat/data/message.dart';
+import 'package:suhbat/features/chat/domain/entities/message_entity.dart';
 import 'package:suhbat/features/widgets/date_separator.dart';
 import 'package:suhbat/features/widgets/message_input.dart';
 import 'package:suhbat/features/direct_message/data/dm_repository.dart';
@@ -145,14 +145,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         return DateSeparator(date: item);
                       }
 
-                      final message = item as Message;
+                      final message = item as MessageEntity;
                       final isMe =
                           message.userId ==
                           Supabase.instance.client.auth.currentUser!.id;
                       final isSameAsPrevious =
                           index < items.length - 1 &&
-                          items[index + 1] is Message &&
-                          (items[index + 1] as Message).userId ==
+                          items[index + 1] is MessageEntity &&
+                          (items[index + 1] as MessageEntity).userId ==
                               message.userId;
                       final username = message.username;
 

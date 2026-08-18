@@ -1,14 +1,11 @@
-class RoomMember {
-  final String roomId;
-  final String userId;
-  final String role;
-  final DateTime joinedAt;
+import 'package:suhbat/features/chat/domain/entities/room_member_entity.dart';
 
+class RoomMember extends RoomMemberEntity {
   RoomMember({
-    required this.roomId,
-    required this.userId,
-    required this.role,
-    required this.joinedAt,
+    required super.roomId,
+    required super.userId,
+    required super.role,
+    required super.joinedAt,
   });
 
   factory RoomMember.fromJson(Map<String, dynamic> json) {

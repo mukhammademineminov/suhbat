@@ -1,21 +1,14 @@
-class Message {
-  final String id;
-  final String roomId;
-  final String userId;
-  final String content;
-  final DateTime createdAt;
-  final String? username;
-  final bool isRead;
+import 'package:suhbat/features/chat/domain/entities/message_entity.dart';
 
-
-  Message({
-    required this.id,
-    required this.roomId,
-    required this.userId,
-    required this.content,
-    required this.createdAt,
-    this.username,
-    this.isRead = false,
+class Message extends MessageEntity {
+  const Message({
+    required super.id,
+    required super.roomId,
+    required super.userId,
+    required super.content,
+    required super.createdAt,
+    super.username,
+    super.isRead,
   });
 
   factory Message.fromMap(Map<String, dynamic> map) {
@@ -26,7 +19,7 @@ class Message {
       content: map['content'] as String,
       createdAt: DateTime.parse(map['created_at'] as String),
       username: map['profiles']?['username'] as String?,
-      isRead: map['is_read'] as bool,
+      isRead: (map['is_read'] as bool?) ?? false,
     );
   }
 }

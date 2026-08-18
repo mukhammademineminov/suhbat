@@ -1,21 +1,15 @@
+import 'package:suhbat/features/chat/domain/entities/room_entity.dart';
 
-class Room {
-  final String id;
-  final String name;
-  final DateTime createdAt;
-  final String? lastMessage;
-  final DateTime? lastMessageTime;
-  final int unreadCount;
-  final int memberCount;
-
+class Room extends RoomEntity {
+  
   Room({
-    required this.id,
-    required this.name,
-    required this.createdAt,
-    this.lastMessage,
-    this.lastMessageTime,
-    this.unreadCount = 0,
-    this.memberCount = 0,
+    required super.id,
+    required super.name,
+    required super.createdAt,
+    super.lastMessage,
+    super.lastMessageTime,
+    super.unreadCount,
+    super.memberCount,
   });
 
   factory Room.fromMap(Map<String, dynamic> map, {String? currentUserId}) {

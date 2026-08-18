@@ -1,7 +1,7 @@
-import 'package:suhbat/features/chat/data/room.dart';
+import 'package:suhbat/features/chat/domain/entities/room_entity.dart';
 
 abstract class RoomRepository {
-  Future<List<Room>> getMyRooms();
-  Future<Room> createRoom(String name);
+  Future<List<RoomEntity>> getMyRooms();
+  Future<RoomEntity> createRoom(String name);
   Future<int> getUnreadCount(String roomId);
 }
