@@ -1,10 +1,13 @@
 import 'package:suhbat/features/chat/data/room.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:suhbat/features/chat/domain/repositories/room_repository.dart';
 
-class RoomRepository {
+
+class RoomRepositoryImpl implements RoomRepository {
   final SupabaseClient _client;
-  RoomRepository(this._client);
+  RoomRepositoryImpl(this._client);
 
+  @override
   Future<List<Room>> getMyRooms() async {
     final userId = _client.auth.currentUser!.id;
 
@@ -31,6 +34,7 @@ class RoomRepository {
         .toList();
   }
 
+  @override
   Future<Room> createRoom(String name) async {
     final userId = _client.auth.currentUser!.id;
 
@@ -49,6 +53,7 @@ class RoomRepository {
     return Room.fromMap(roomJson);
   }
 
+  @override
   Future<int> getUnreadCount(String roomId) async {
     final userId = _client.auth.currentUser!.id;
     final data = await _client

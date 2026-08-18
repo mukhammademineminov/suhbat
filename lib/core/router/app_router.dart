@@ -8,7 +8,6 @@ import 'package:suhbat/features/auth/presentation/register_screen.dart';
 import 'package:suhbat/features/chat/presentation/rooms_screen.dart';
 import 'package:suhbat/features/chat/presentation/chat_screen.dart';
 import 'package:suhbat/features/profile/presentation/profile_screen.dart';
-import 'package:suhbat/features/direct_message/presentation/dm_screen.dart';
 
 class AuthChangeNotifier extends ChangeNotifier {
   AuthChangeNotifier() {
