@@ -6,7 +6,7 @@ class ChatRepositoryImpl implements ChatRepository {
   final SupabaseClient _supabase;
   ChatRepositoryImpl(this._supabase);
 
-  @override
+@override
   Future<List<Message>> getMessages(String roomId) async {
     final data = await _supabase
         .from('messages')

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:suhbat/features/chat/providers/chat_provider.dart';
 import 'package:suhbat/features/chat/providers/room_members_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:suhbat/features/chat/providers/chat_provider.dart';
 import 'package:suhbat/core/providers/active_chat_provider.dart';
 import 'package:suhbat/features/widgets/message_bubble.dart';
 import 'package:suhbat/features/chat/domain/entities/message_entity.dart';
@@ -16,7 +16,12 @@ class ChatScreen extends ConsumerStatefulWidget {
   final String roomId;
   final String roomName;
   final int memberCount;
-  const ChatScreen({super.key, required this.roomId, required this.roomName, required this.memberCount});
+  const ChatScreen({
+    super.key,
+    required this.roomId,
+    required this.roomName,
+    required this.memberCount,
+  });
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -32,8 +37,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _messageController.dispose();
     _scrollController.dispose();
     Future.microtask(() {
-    ref.read(activeChatProvider.notifier).state = null;
-  });
+      ref.read(activeChatProvider.notifier).state = null;
+    });
     super.dispose();
   }
 
@@ -43,8 +48,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         await ref
-            .read(chatRepositoryProvider)
-            .markMessagesAsRead(widget.roomId);
+            .read(markMessagesAsReadUseCaseProvider)
+            .call(widget.roomId);
         // Set the active chat room ID in the provider
         ref.read(activeChatProvider.notifier).state = widget.roomId;
       } catch (e) {
@@ -76,22 +81,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Column(
-      crossAxisAlignment: CrossAxisAlignment.start, 
-      mainAxisSize: MainAxisSize.min, 
-      children: [
-        Text(
-          widget.roomName,
-          style: const TextStyle(fontSize: 18), 
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(widget.roomName, style: const TextStyle(fontSize: 18)),
+            Text(
+              '${widget.memberCount} ${widget.memberCount == 0 ? 'member' : 'members'}',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
         ),
-        Text(
-          '${widget.memberCount} ${widget.memberCount == 0 ? 'member' : 'members'}', 
-          style: const TextStyle(
-            fontSize: 12, 
-            color: Colors.grey,
-          ),
-        ),
-      ],
-    ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () async {
@@ -228,8 +227,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (content.isEmpty) return;
 
     _messageController.clear();
-    await ref.read(chatRepositoryProvider).sendMessage(widget.roomId, content);
-
+    await ref
+        .read(sendMessageUseCaseProvider)
+        .call(roomId: widget.roomId, content: content);
     //scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
