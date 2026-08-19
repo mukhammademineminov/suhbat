@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:suhbat/features/chat/providers/chat_controller.dart';
 import 'package:suhbat/features/chat/providers/chat_provider.dart';
 import 'package:suhbat/features/chat/providers/room_members_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -227,9 +228,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (content.isEmpty) return;
 
     _messageController.clear();
-    await ref
-        .read(sendMessageUseCaseProvider)
-        .call(roomId: widget.roomId, content: content);
+    await ref.read(chatControllerProvider.notifier).sendMessage(
+        roomId: widget.roomId,
+        content: content,
+      );
     //scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
