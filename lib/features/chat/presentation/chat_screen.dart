@@ -58,6 +58,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final messagesAsync = ref.watch(messagesProvider(widget.roomId));
     final isMemberAsync = ref.watch(isRoomMemberProvider(widget.roomId));
     final isMember = isMemberAsync.value ?? false;
+    final isSending = ref.watch(chatControllerProvider).isLoading;
 
     ref.listen(messagesProvider(widget.roomId), (_, next) {
       next.whenData((_) {
@@ -144,8 +145,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             isMemberAsync.when(
               data: (isMember) => isMember
                   ? MessageInput(
+                    
                       controller: _messageController,
                       onSend: _sendMessage,
+                      isSending: isSending,
                     )
                   : Padding(
                       padding: const EdgeInsets.all(16.0),
