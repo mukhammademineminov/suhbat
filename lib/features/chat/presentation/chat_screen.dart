@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:suhbat/features/chat/presentation/widgets/message_list.dart';
 import 'package:suhbat/features/chat/providers/chat_controller.dart';
 import 'package:suhbat/features/chat/providers/chat_provider.dart';
 import 'package:suhbat/features/chat/providers/room_members_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:suhbat/core/providers/active_chat_provider.dart';
-import 'package:suhbat/features/widgets/message_bubble.dart';
-import 'package:suhbat/features/chat/domain/entities/message_entity.dart';
-import 'package:suhbat/features/widgets/date_separator.dart';
 import 'package:suhbat/features/widgets/message_input.dart';
-import 'package:suhbat/features/direct_message/data/dm_repository.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String roomId;
@@ -48,9 +44,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        await ref
-            .read(markMessagesAsReadUseCaseProvider)
-            .call(widget.roomId);
+        await ref.read(markMessagesAsReadUseCaseProvider).call(widget.roomId);
         // Set the active chat room ID in the provider
         ref.read(activeChatProvider.notifier).state = widget.roomId;
       } catch (e) {
@@ -135,48 +129,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     items.add(message);
                   }
 
-                  return ListView.builder(
-                    controller: _scrollController,
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-
-                      if (item is DateTime) {
-                        return DateSeparator(date: item);
-                      }
-
-                      final message = item as MessageEntity;
-                      final isMe =
-                          message.userId ==
-                          Supabase.instance.client.auth.currentUser!.id;
-                      final isSameAsPrevious =
-                          index < items.length - 1 &&
-                          items[index + 1] is MessageEntity &&
-                          (items[index + 1] as MessageEntity).userId ==
-                              message.userId;
-                      final username = message.username;
-
-                      return MessageBubble(
-                        key: ValueKey(message.id),
-                        content: message.content,
-                        createdAt: message.createdAt,
-                        username: username,
-                        isRead: message.isRead,
-                        isMe: isMe,
-                        isSameAsPrevious: isSameAsPrevious,
-                        userId: message.userId,
-                        onAvatarTap: () async {
-                          if (isMe) return;
-                          final router = GoRouter.of(context);
-                          final conversationId = await DmRepository()
-                              .getOrCreateConversation(message.userId);
-                          if (!mounted) return;
-                          router.push(
-                            '/dm/$conversationId/${Uri.encodeComponent(message.username ?? '')}',
-                          );
-                        },
-                      );
-                    },
+                  return messagesAsync.when(
+                    data: (messages) => MessageList(
+                      items: items,
+                      scrollController: _scrollController,
+                    ),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, st) => Center(child: Text('Error: $e')),
                   );
                 },
               ),
@@ -228,10 +188,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (content.isEmpty) return;
 
     _messageController.clear();
-    await ref.read(chatControllerProvider.notifier).sendMessage(
-        roomId: widget.roomId,
-        content: content,
-      );
+    await ref
+        .read(chatControllerProvider.notifier)
+        .sendMessage(roomId: widget.roomId, content: content);
     //scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
